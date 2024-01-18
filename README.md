@@ -27,7 +27,7 @@ To get the code running, only the following steps are required:
     ```
 3. The virtual environment must be activated:
     ```bash
-    conda activate circles-with-cv 
+    conda activate circles-with-cv-opencv 
     ```
 
 ## Project Structure

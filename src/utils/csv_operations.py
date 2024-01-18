@@ -56,8 +56,11 @@ def save_data(df, dirname, filename):
         no return
     """
 
-    # Join the filepath of the raw data file
-    filepath = os.path.join(os.path.dirname(__file__), "..", "..", "data", dirname, filename)
+    # Join the filepath of the raw data file and create directory if it not exist
+    file_dir = os.path.join(os.path.dirname(__file__), "..", "..", dirname)
+    if not os.path.exists(file_dir):
+        os.makedirs(file_dir)
+    filepath = os.path.join(file_dir, filename)
 
     # Save the data to CSV file
     df.to_csv(filepath, index=False)
