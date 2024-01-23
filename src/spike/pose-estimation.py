@@ -152,6 +152,39 @@ def figure_hist(figure_title, x_label, y_label, edges, hist):
         sys.exit('A parameter does not match the given type')
 
 #########################################################
+
+def figure_time_series_data_as_layers(figure_title, y_label, x_data, y_layers, y_datas):
+    """
+    Function to create a figure for time series data as multiple layers
+    ----------
+    Parameters:
+        figure_title : str
+            The title of the figure
+        y_label : str
+            The label of the y axis
+        x_data : Series
+                The x data to plot
+        y_layers : array
+            The names of the layers
+        y_datas : DataFrame
+            The y data to plot
+    ----------
+    Returns:
+        The figure
+    """
+
+    try:
+        __own_logger.info("Figure for times series data as multiple layers with title %s", figure_title)
+        figure = PlotMultipleLayers(figure_title, "frame num", y_label, x_range=x_data)
+        for (index, layer) in enumerate(y_layers):
+            __own_logger.info("Add Layer for %s", layer)
+            figure.addLineCircleLayer(layer, x_data, y_datas[index])
+        return figure
+    except TypeError as error:
+        __own_logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')
+
+#########################################################
 #########################################################
 #########################################################
 
@@ -211,15 +244,14 @@ if __name__ == "__main__":
             # Add the landmark coordinates to the list and print them
             append_landmarks_to_list(result.pose_landmarks.landmark, frame_number, csv_data)
 
+            # Find the Euclidean distance between two dimensional points:
+            #dist_right = math.dist([result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x,result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].y], [result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].x,result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].y])
+            #dist_left = math.dist([result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x,result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].y], [result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].x,result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].y])
             # Try to calculate the horizontal component of the distance (only x) between the nose and the foot indizes (the points are normalized to the width and the heigth of the image)
             dist_right = result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x - result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].x
             dist_left = result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x - result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].x
             __own_logger.info("X distance betwenn NOSE and RIGHT_FOOT_INDEX: %f", dist_right)
             __own_logger.info("X distance betwenn NOSE and LEFT_FOOT_INDEX: %f", dist_left)
-            # Find the Euclidean distance between two dimensional points:
-            #__own_logger.info("Distance betwenn NOSE and RIGHT_FOOT_INDEX: %f", math.dist([result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x,result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].y], [result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].x,result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].y]))
-            #__own_logger.info("Distance betwenn NOSE and LEFT_FOOT_INDEX: %f", math.dist([result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x,result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].y], [result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].x,result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].y]))
-            # Add the distance to the distances list
             dists_right.append(dist_right)
             dists_left.append(dist_left)
 
@@ -282,7 +314,7 @@ if __name__ == "__main__":
         "value": [np.mean(np.absolute(dists_right)), np.mean(np.absolute(dists_left))],
     }
     # Show Bar-Chart
-    figure_horizontal_distance = figure_vbar("Mittelwert der absoluten horizontalen Distanz (normiert)", "Distanz (normiert)", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True)
+    figure_horizontal_distance = figure_vbar("Mittelwert der horizontalen Distanz (normierter Betrag)", "Distanz (normierter Betrag)", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True)
 
     # Visualize the horizontal distance histogramm
     # Create values for visualization data (get the count of values via histogram)
@@ -303,6 +335,17 @@ if __name__ == "__main__":
     }
     figure_horizontal_distance_left_hist = figure_hist("Histogram der normierten horizontalen Distanz NOSE-LEFT_FOOT_INDEX", "normierten horizontalen Distanz NOSE-LEFT_FOOT_INDEX", "Anzahl Distanzmessungen", dict_visualization_data.get('label'), dict_visualization_data.get('value'))
 
+    # Visualize the horizontal distance as time series data over all frames
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ['NOSE-RIGHT_FOOT_INDEX', 'NOSE-LEFT_FOOT_INDEX'],
+        "value": [dists_right, dists_left],
+        # As x_range take the frame numbers as list, but strings as elements
+        "x_range": [str(number) for number in list(range(1,len(dists_left)+1))]
+    }
+    # Show Line-Circle Chart
+    figure_horizontal_distance_time_series = figure_time_series_data_as_layers("normierte horizontale Distanz über die Zeit/ Frames", "horizontale Distanz", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+
     # Create the plot with the created figures
     file_name = "pose-estimation.html"
     file_title = "Spike: Pose Detection with MediaPipe"
@@ -311,6 +354,7 @@ if __name__ == "__main__":
     plot.appendFigure(figure_horizontal_distance.getFigure())
     plot.appendFigure(figure_horizontal_distance_right_hist.getFigure())
     plot.appendFigure(figure_horizontal_distance_left_hist.getFigure())
+    plot.appendFigure(figure_horizontal_distance_time_series.getFigure())
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
         

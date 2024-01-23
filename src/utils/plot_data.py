@@ -125,8 +125,8 @@ class PlotMultipleLayers(PlotBokeh):
         """
         # check the parameter
         checkParameterString(legend_label)
-        checkParameter(x_data, Series)
-        checkParameter(y_data, Series)
+        #checkParameter(x_data, Series)
+        #checkParameter(y_data, Series)
         # Assign the next color automatically from the color iterator
         color = next(self.__color_iter)
         # add the plots to the figure
