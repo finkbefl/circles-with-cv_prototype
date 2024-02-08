@@ -6,7 +6,7 @@ from bokeh.io import output_file
 from bokeh.layouts import gridplot, column
 from bokeh.palettes import Category10_10
 from pandas.core.series import Series
-from bokeh.plotting.figure import Figure    # requires bokeh version 2.4.3
+#from bokeh.plotting.figure import Figure    # requires bokeh version 2.4.3, now using version 3
 from bokeh.models import Range1d, BoxAnnotation, Label
 from numbers import Real
 # Import internal packages/ classes
@@ -73,6 +73,8 @@ class PlotMultipleLayers(PlotBokeh):
             Add a circle and line layer to the figure with the given data
         addVBarLayer(legend_label, x_data, y_data):
             Add a vertical bar layer to the figure with the given data
+        addHist(edges, hist):
+            Add a histogram layer to the figure
         add_green_box(top_val):
             Add a green box from y=0 up to the specified y value
         add_vertical_line(x_pos, top_val, bottom_val=0):
@@ -99,7 +101,11 @@ class PlotMultipleLayers(PlotBokeh):
         checkParameterString(figure_title)
         #checkParameterString(x_label)
         #checkParameterString(y_label)
-        self.__own_figure = figure(title=figure_title, x_axis_type=x_axis_type, x_range=x_range, x_axis_label=x_label, y_axis_label=y_label)
+        if x_axis_type is None:
+            # Figure without predefined axis type (e.g. for histogram)
+            self.__own_figure = figure(title=figure_title, x_axis_label=x_label, y_axis_label=y_label)
+        else:
+            self.__own_figure = figure(title=figure_title, x_axis_type=x_axis_type, x_range=x_range, x_axis_label=x_label, y_axis_label=y_label)
         self.__own_logger.info("Bokeh plot for multiple layers initialized for figure %s", figure_title)
 
     def addLineCircleLayer(self, legend_label, x_data, y_data):
@@ -119,8 +125,8 @@ class PlotMultipleLayers(PlotBokeh):
         """
         # check the parameter
         checkParameterString(legend_label)
-        checkParameter(x_data, Series)
-        checkParameter(y_data, Series)
+        #checkParameter(x_data, Series)
+        #checkParameter(y_data, Series)
         # Assign the next color automatically from the color iterator
         color = next(self.__color_iter)
         # add the plots to the figure
@@ -177,6 +183,26 @@ class PlotMultipleLayers(PlotBokeh):
             self.__own_figure.vbar(x = x_data, top = y_data, width=0.8)
 
         self.__own_logger.info("Added vbar layer")
+
+    def addHist(self, edges, hist):
+        """
+        Add a histogram layer to the figure
+        ----------
+        Parameters:
+        edges : numbers.Real
+            The bins edges data to plot
+        hist : numbers.Real
+            The histogram data to plot
+        ----------
+        Returns:
+            no returns
+        """
+        # check the parameter
+        #checkParameter(x_data, Real)
+        #checkParameter(y_data, Real)
+        # add a plot to the figure
+        self.__own_figure.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], line_color="white")
+        self.__own_logger.info("Added hist layer")
 
     def set_axis_range(self, x_min=None, x_max=None, y_min=None, y_max=None):
         """
@@ -303,9 +329,11 @@ class PlotMultipleLayers(PlotBokeh):
         Returns:
             Show the plot
         """
+        # Set the sizing_mode for all figures in list
+        for figure in self.__figure_list:
+            figure.sizing_mode=sizing_mode
         self.__own_logger.info("Show the column layout")
-        plot = column(self.__own_figure, sizing_mode=sizing_mode)
-        show(plot)
+        plot = column(self.__figure_list, sizing_mode=sizing_mode)
 
 class PlotMultipleFigures(PlotBokeh):
     """
@@ -348,7 +376,7 @@ class PlotMultipleFigures(PlotBokeh):
             no returns
         """
         # check the parameter
-        checkParameter(figure, Figure)
+        #checkParameter(figure, Figure)
         self.__figure_list.append(figure)
         self.__own_logger.info("Appendend figure to Bokeh plot %s", figure)
 
@@ -382,6 +410,9 @@ class PlotMultipleFigures(PlotBokeh):
         Returns:
             Show the plot
         """
+        # Set the sizing_mode for all figures in list
+        for figure in self.__figure_list:
+            figure.sizing_mode=sizing_mode
         self.__own_logger.info("Show the column layout")
         plot = column(self.__figure_list, sizing_mode=sizing_mode)
         show(plot)
