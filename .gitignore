@@ -2,5 +2,8 @@
 **/__pycache__/*
 logs/*
 output/*
+data/backup/*
 
 **.mp4
+**.MOV
+**.ods

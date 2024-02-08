@@ -197,7 +197,7 @@ if __name__ == "__main__":
     # Join the filepath of the raw data file
     video_filename = "circle_mushroom_fromSide.mp4"
     #video_filename = "circle_mushroom_fromTop.mp4"
-    video_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw", video_filename)
+    video_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw", "PoC", video_filename)
 
     __own_logger.info("Input video: %s", video_path)
 
