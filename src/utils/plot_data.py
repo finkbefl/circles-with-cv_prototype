@@ -1,6 +1,9 @@
 # Class to plot data with bokeh
 
 # Import the external packages
+# Operating system functionalities
+import sys
+# Plotting with bokeh
 from bokeh.plotting import figure, show
 from bokeh.io import output_file
 from bokeh.layouts import gridplot, column
@@ -416,3 +419,111 @@ class PlotMultipleFigures(PlotBokeh):
         self.__own_logger.info("Show the column layout")
         plot = column(self.__figure_list, sizing_mode=sizing_mode)
         show(plot)
+
+#########################################################
+
+def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True, color_sequencing=True):
+    """
+    Function to create a vbar chart figure
+    ----------
+    Parameters:
+        logger : Logger
+            The Logger to log with
+        figure_title : str
+            The title of the figure
+        y_label : str
+            The label of the y axis
+        x_data : numbers.Real
+            The x data to plot
+        y_data : numbers.Real
+            The y data to plot
+        set_x_range : boolean
+            set the x_data as range of the x-axis (for categorical data)
+        color_sequencing : boolean
+            A flag, whether every bar sould be drawn in another color with the known color sequence
+    ----------
+    Returns:
+        The bokeh class
+    """
+
+    try:
+        logger.info("Figure for vbar chart: %s", figure_title)
+        # Set the x_data as x_range (for categorical data)?
+        if set_x_range:
+            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=x_data)
+        # Dont set the x_range
+        else:
+            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=None)
+        figure.addVBarLayer(x_data, y_data, color_sequencing=color_sequencing)
+        return figure
+    except TypeError as error:
+        logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')
+
+#########################################################
+
+def figure_hist(logger, figure_title, x_label, y_label, edges, hist):
+    """
+    Function to create a histogram chart figure
+    ----------
+    Parameters:
+        logger : Logger
+            The Logger to log with
+        figure_title : str
+            The title of the figure
+        x_label : str
+            The label of the x axis
+        y_label : str
+            The label of the y axis
+        edges : numbers.Real
+            The bins edges data to plot
+        hist : numbers.Real
+            The histogram data to plot
+    ----------
+    Returns:
+        The bokeh class
+    """
+
+    try:
+        logger.info("Figure for hist chart: %s", figure_title)
+        figure = PlotMultipleLayers(figure_title, x_axis_type=None, x_label=x_label, y_label=y_label)
+        figure.addHist(edges, hist)
+        return figure
+    except TypeError as error:
+        logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')
+
+#########################################################
+
+def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_layers, y_datas):
+    """
+    Function to create a figure for time series data as multiple layers
+    ----------
+    Parameters:
+        logger : Logger
+            The Logger to log with
+        figure_title : str
+            The title of the figure
+        y_label : str
+            The label of the y axis
+        x_data : Series
+                The x data to plot
+        y_layers : array
+            The names of the layers
+        y_datas : DataFrame
+            The y data to plot
+    ----------
+    Returns:
+        The figure
+    """
+
+    try:
+        logger.info("Figure for times series data as multiple layers with title %s", figure_title)
+        figure = PlotMultipleLayers(figure_title, "frame num", y_label, x_range=x_data)
+        for (index, layer) in enumerate(y_layers):
+            logger.info("Add Layer for %s", layer)
+            figure.addLineCircleLayer(layer, x_data, y_datas[index])
+        return figure
+    except TypeError as error:
+        logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')
