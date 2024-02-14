@@ -13,6 +13,10 @@ import cv2
 import re
 # Multimedia: Manipulate and get infos
 import ffmpeg
+# Numpy
+import numpy as np
+# Fractions
+from fractions import Fraction
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
@@ -22,7 +26,7 @@ from utils.own_logging import OwnLogging, log_overview_data_frame
 # To handle csv files
 from utils.csv_operations import load_data,  save_data
 # To plot data with bokeh
-from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar, figure_hist, figure_time_series_data_as_layers
+from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar, figure_hist, figure_hist_as_layers, figure_time_series_data_as_layers
 
 #########################################################
 
@@ -118,6 +122,194 @@ if __name__ == "__main__":
     data_collection['duration'] = duration
     data_collection['bit_rate'] = bit_rate
     data_collection['nb_frames'] = nb_frames
+
+    # Visualize the metadata
+    # location_group
+    # Create values for visualization data (get the count of values via histogram)
+    hist, bin_edges = np.histogram(data_collection.location_group, density=False, bins=data_collection.location_group.max())
+    # Create labels
+    labels = list("Gruppe {}".format(str(i)) for i in range(data_collection.location_group.min(), data_collection.location_group.max() + 1))
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": labels,
+        "value": hist
+    }
+    # Print the histogram as vbar as the bin-edges here are not actually the limits of the bins, but the corresponding value. The x-axis would therefore be shifted.
+    figure_loc_hist = figure_vbar(__own_logger, "Häufigkeitsverteilung der Gruppe des Ortes", "Anzahl Videos", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
+    # device_name
+    # Create values for visualization data (get the count of values)
+    labels = data_collection.device_name.drop_duplicates().values
+    values = list(len(data_collection[data_collection.device_name==device]) for device in data_collection.device_name.drop_duplicates().values)
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": labels,
+        "value": values
+    }
+    # Print the histogram as vbar as the bins are no numbers
+    figure_device_hist = figure_vbar(__own_logger, "Häufigkeitsverteilung des Aufnahmegeräts", "Anzahl Videos", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
+    # manual_preprocessing
+    # Create values for visualization data (get the count of values)
+    labels = data_collection.manual_preprocessing.drop_duplicates().values
+    values = list(len(data_collection[data_collection.manual_preprocessing==answer]) for answer in data_collection.manual_preprocessing.drop_duplicates().values)
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": labels,
+        "value": values
+    }
+    # Print the histogram as vbar as the bins are no numbers
+    figure_manual_preproc_hist = figure_vbar(__own_logger, "Häufigkeitsverteilung der manuellen Vorverarbeitung", "Anzahl Videos", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
+    # codec_name
+    # Create values for visualization data (get the count of values)
+    labels = data_collection.codec_name.drop_duplicates().values
+    values = list(len(data_collection[data_collection.codec_name==value]) for value in data_collection.codec_name.drop_duplicates().values)
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": labels,
+        "value": values
+    }
+    # Print the histogram as vbar as the bins are no numbers
+    figure_codec_hist = figure_vbar(__own_logger, "Häufigkeitsverteilung des Codecs", "Anzahl Videos", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
+    # width
+    # Create values for visualization data (get the count of values via histogram)
+    hist, bin_edges = np.histogram(data_collection.width, density=False, bins=15)
+    hist_1, bin_edges_1 = np.histogram(data_collection.coded_width, density=False, bins=15)
+    # Bins must be equal to get correct visualization! Check it!
+    if (bin_edges != bin_edges_1).any():
+        __own_logger.error("########## Error when trying to visualize multiple histogramms ##########")
+        sys.exit('Bins are not equal for visualize multiple histogramms')
+    # Create dict for visualization data
+    dict_visualization_data = {
+        # Bins edges must be in form of string elements in list
+        "layer": ["width", "coded_width"],
+        "label": [["%.5f" % number for number in bin_edges], ["%.5f" % number for number in bin_edges_1]],
+        "value": [hist, hist_1]
+    }
+    figure_width_hist = figure_hist_as_layers(__own_logger, "Häufigkeitsverteilung der Auflösungsbreite", "Pixel", "Anzahl Videos", dict_visualization_data.get('layer'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+    # height
+    # Create values for visualization data (get the count of values via histogram)
+    hist, bin_edges = np.histogram(data_collection.height, density=False, bins=15)
+    hist_1, bin_edges_1 = np.histogram(data_collection.coded_height, density=False, bins=15)
+    # Bins must be equal to get correct visualization! Equalize if necessary
+    edge_min = min([bin_edges.min(), bin_edges_1.min()])
+    edge_max = max([bin_edges.max(), bin_edges_1.max()])
+    hist, bin_edges = np.histogram(data_collection.height, density=False, bins=15, range=(edge_min,edge_max))
+    hist_1, bin_edges_1 = np.histogram(data_collection.coded_height, density=False, bins=15, range=(edge_min,edge_max))
+    # Bins must be equal to get correct visualization! Check it!
+    if (bin_edges != bin_edges_1).any():
+        __own_logger.error("########## Error when trying to visualize multiple histogramms ##########")
+        sys.exit('Bins are not equal for visualize multiple histogramms')
+    # Create dict for visualization data
+    dict_visualization_data = {
+        # Bins edges must be in form of string elements in list
+        "layer": ["height", "coded_height"],
+        "label": [["%.5f" % number for number in bin_edges], ["%.5f" % number for number in bin_edges_1]],
+        "value": [hist, hist_1]
+    }
+    figure_height_hist = figure_hist_as_layers(__own_logger, "Häufigkeitsverteilung der Auflösungshöhe", "Pixel", "Anzahl Videos", dict_visualization_data.get('layer'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+    # pix_fmt
+    # Create values for visualization data (get the count of values)
+    labels = data_collection.pix_fmt.drop_duplicates().values
+    values = list(len(data_collection[data_collection.pix_fmt==value]) for value in data_collection.pix_fmt.drop_duplicates().values)
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": labels,
+        "value": values
+    }
+    # Print the histogram as vbar as the bins are no numbers
+    figure_pix_fmt_hist = figure_vbar(__own_logger, "Häufigkeitsverteilung des Pixelformats", "Anzahl Videos", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
+    # frame_rate
+    # Calc float numbers from fractions
+    r_frame_rate = list(float(Fraction(num)) for num in data_collection.r_frame_rate)
+    avg_frame_rate = list(float(Fraction(num)) for num in data_collection.avg_frame_rate)
+    # Create values for visualization data (get the count of values via histogram)
+    hist, bin_edges = np.histogram(r_frame_rate, density=False, bins=15)
+    hist_1, bin_edges_1 = np.histogram(avg_frame_rate, density=False, bins=15)
+    # Bins must be equal to get correct visualization! Equalize if necessary
+    if bin_edges.min() < bin_edges_1.min() or bin_edges.max() > bin_edges_1.max():
+        # Range of bin_edges is bigger, use it also for hist_1
+        hist_1, bin_edges_1 = np.histogram(avg_frame_rate, density=False, bins=bin_edges)
+    elif bin_edges_1.min() < bin_edges.min() or bin_edges_1.max() > bin_edges.max():
+        # Range of bin_edges_1 is bigger, use it also for hist
+        hist, bin_edges = np.histogram(r_frame_rate, density=False, bins=bin_edges_1)
+    # Bins must be equal to get correct visualization! Check it!
+    if (bin_edges != bin_edges_1).any():
+        __own_logger.error("########## Error when trying to visualize multiple histogramms ##########")
+        sys.exit('Bins are not equal for visualize multiple histogramms')
+    # Create dict for visualization data
+    dict_visualization_data = {
+        # Bins edges must be in form of string elements in list
+        "layer": ["r_frame_rate", "avg_frame_rate"],
+        "label": [["%.5f" % number for number in bin_edges], ["%.5f" % number for number in bin_edges_1]],
+        "value": [hist, hist_1]
+    }
+    figure_frame_rate_hist = figure_hist_as_layers(__own_logger, "Häufigkeitsverteilung der Bildwiederholrate", "Pixel", "Anzahl Videos", dict_visualization_data.get('layer'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+    # duration
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ['duration'],
+        "value": [data_collection.duration.astype(float)],
+        # As x_range take the number of the videos
+        "x_range": ["#{}".format(str(i)) for i in data_collection.video_number]
+    }
+    # Show Line-Circle Chart
+    figure_duration_time_series = figure_time_series_data_as_layers(__own_logger, "Länge der Videos", "Dauer in s", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
+    #bit_rate
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ['bit_rate'],
+        "value": [data_collection.bit_rate.astype(float)],
+        # As x_range take the number of the videos
+        "x_range": ["#{}".format(str(i)) for i in data_collection.video_number]
+    }
+    # Show Line-Circle Chart
+    figure_bit_rate_time_series = figure_time_series_data_as_layers(__own_logger, "Bitrate", "bit/s", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
+    # nb_frames
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ['nb_frames'],
+        "value": [data_collection.nb_frames.astype(float)],
+        # As x_range take the number of the videos
+        "x_range": ["#{}".format(str(i)) for i in data_collection.video_number]
+    }
+    # Show Line-Circle Chart
+    figure_nb_frames_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl Frames", "Anzahl Frames", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
+    # manual_circle_detection_num_attempts
+    # Count number of digits (detected time point in videos) which are seperated by '-'
+    start_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_start_s]
+    end_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_end_s]
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ['manual_circle_start_detection_count_attempts', 'manual_circle_stop_detection_count_attempts'],
+        "value": [start_count, end_count],
+        # As x_range take the number of the videos
+        "x_range": ["#{}".format(str(i)) for i in data_collection.video_number]
+    }
+    # Show Line-Circle Chart
+    figure_manual_circle_detect_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl manuell detektierter Kreisflankenversuche", "Anzahl detektierter Zeitpunkte", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
+
+
+    # Create the plot with the created figures
+    file_name = "data-analysis.html"
+    file_title = "Explorative Datenanalyse"
+    __own_logger.info("Plot %s as multiple figures to file %s", file_title, file_name)
+    plot = PlotMultipleFigures(os.path.join("output/circles-detection",file_name), file_title)
+    plot.appendFigure(figure_loc_hist.getFigure())
+    plot.appendFigure(figure_device_hist.getFigure())
+    plot.appendFigure(figure_manual_preproc_hist.getFigure())
+    plot.appendFigure(figure_codec_hist.getFigure())
+    plot.appendFigure(figure_width_hist.getFigure())
+    plot.appendFigure(figure_height_hist.getFigure())
+    plot.appendFigure(figure_pix_fmt_hist.getFigure())
+    plot.appendFigure(figure_frame_rate_hist.getFigure())
+    plot.appendFigure(figure_duration_time_series.getFigure())
+    plot.appendFigure(figure_nb_frames_time_series.getFigure())
+    plot.appendFigure(figure_bit_rate_time_series.getFigure())
+    plot.appendFigure(figure_manual_circle_detect_time_series.getFigure())
+    # Show the plot in responsive layout, but only stretch the width
+    plot.showPlotResponsive('stretch_width')
+
+
+
     # Save the DataFrame to CSV
     save_data(data_collection, data_path, 'training_videos_with_metadata.csv')
 

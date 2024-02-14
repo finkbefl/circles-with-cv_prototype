@@ -188,7 +188,7 @@ if __name__ == "__main__":
     # Show Bar-Chart
     figure_horizontal_distance = figure_vbar(__own_logger, "Mittelwert der horizontalen Distanz (normierter Betrag)", "Distanz (normierter Betrag)", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True)
 
-    # Visualize the horizontal distance histogramm
+    # Visualize the horizontal distance histogram
     # Create values for visualization data (get the count of values via histogram)
     hist_dist_right, bin_edges_dist_right = np.histogram(dists_right, density=False, bins=15)
     hist_dist_left, bin_edges_dist_left = np.histogram(dists_left, density=False, bins=15)
@@ -198,14 +198,14 @@ if __name__ == "__main__":
         "label": ["%.5f" % number for number in bin_edges_dist_right],
         "value": hist_dist_right
     }
-    figure_horizontal_distance_right_hist = figure_hist(__own_logger, "Histogram der normierten horizontalen Distanz NOSE-RIGHT_FOOT_INDEX", "normierten horizontalen Distanz NOSE-RIGHT_FOOT_INDEX", "Anzahl Distanzmessungen", dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+    figure_horizontal_distance_right_hist = figure_hist(__own_logger, "Histogramm der normierten horizontalen Distanz NOSE-RIGHT_FOOT_INDEX", "normierten horizontalen Distanz NOSE-RIGHT_FOOT_INDEX", "Anzahl Distanzmessungen", dict_visualization_data.get('label'), dict_visualization_data.get('value'))
     # Create dict for visualization data: left
     dict_visualization_data = {
         # Bins edges must be in form of string elements in list
         "label": ["%.5f" % number for number in bin_edges_dist_left],
         "value": hist_dist_left
     }
-    figure_horizontal_distance_left_hist = figure_hist(__own_logger, "Histogram der normierten horizontalen Distanz NOSE-LEFT_FOOT_INDEX", "normierten horizontalen Distanz NOSE-LEFT_FOOT_INDEX", "Anzahl Distanzmessungen", dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+    figure_horizontal_distance_left_hist = figure_hist(__own_logger, "Histogramm der normierten horizontalen Distanz NOSE-LEFT_FOOT_INDEX", "normierten horizontalen Distanz NOSE-LEFT_FOOT_INDEX", "Anzahl Distanzmessungen", dict_visualization_data.get('label'), dict_visualization_data.get('value'))
 
     # Visualize the horizontal distance as time series data over all frames
     # Create dict for visualization data
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         "x_range": [str(number) for number in list(range(1,len(dists_left)+1))]
     }
     # Show Line-Circle Chart
-    figure_horizontal_distance_time_series = figure_time_series_data_as_layers(__own_logger, "normierte horizontale Distanz über die Zeit/ Frames", "horizontale Distanz", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+    figure_horizontal_distance_time_series = figure_time_series_data_as_layers(__own_logger, "normierte horizontale Distanz über die Zeit/ Frames", "horizontale Distanz", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "frame num")
 
     # Create the plot with the created figures
     file_name = "pose-estimation.html"
