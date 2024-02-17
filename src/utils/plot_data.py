@@ -557,7 +557,7 @@ def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_l
                 The x data to plot
         y_layers : array
             The names of the layers
-        y_datas : DataFrame
+        y_datas : list of Series
             The y data to plot
         x_label : str
             The label of the x axis
