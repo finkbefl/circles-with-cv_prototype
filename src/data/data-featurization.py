@@ -13,12 +13,8 @@ import cv2
 import mediapipe as mp
 # Regular Expressions
 import re
-# Multimedia: Manipulate and get infos
-import ffmpeg
 # Numpy
 import numpy as np
-# Fractions
-from fractions import Fraction
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
@@ -26,7 +22,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 # To handle the Logging for all modules in the same way
 from utils.own_logging import OwnLogging, log_overview_data_frame
 # To handle csv files
-from utils.csv_operations import load_data,  save_data
+from utils.csv_operations import load_data,  save_data, convert_series_into_date
 # To plot data with bokeh
 from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar, figure_hist, figure_hist_as_layers, figure_time_series_data_as_layers
 
@@ -127,6 +123,8 @@ if __name__ == "__main__":
                 left_foot_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].y)
                 # Save timestamp of frame (in milli seconds)
                 timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
+            #else:
+                # TODO: If no landmarks are detected?
 
             # # Display the frame
             # cv2.imshow(f'Data Featurization', frame)
@@ -163,18 +161,19 @@ if __name__ == "__main__":
             # get the correspon dig end-point
             end_time = end_list[time_idx]
             # set the target value to 1 when circles are manually detected
-            features['circles_running'] = np.where((features['timestamp'] > float(start_time)) & (features['timestamp'] < float(end_time)), 1, features['circles_running'])
+            features['circles_running'] = np.where((features['timestamp'] >= float(start_time)) & (features['timestamp'] <= float(end_time)), 1, features['circles_running'])
 
         # Visualize the features
         # Create dict for visualization data
         dict_visualization_data = {
             "label": features.columns.drop('timestamp').values, # Take all columns for visualization in dataframe, except timestamp
             "value": [features[features.columns.drop('timestamp').values][col] for col in features[features.columns.drop('timestamp').values]],
-            # As x_range take the indizes of the dataframe rows, but starting with 1
-            "x_range": [str(i) for i in features.index.values + 1]
+            # As x_data take the timestamp (formatted as datetime), as the data frame rows are no longer representing the frame num (if no landmarks are detected in frames, then there are no entries as rows for these frames)
+            #"x_data": [str(i) for i in features.index.values + 1]
+            "x_data": convert_series_into_date(features['timestamp'], unit='ms')
         }
         # Create a Line-Circle Chart
-        figure_features = figure_time_series_data_as_layers(__own_logger, "{}: Positionen der Füße".format(filename), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Frames")
+        figure_features = figure_time_series_data_as_layers(__own_logger, "{}: Positionen der Füße".format(filename), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
         # Append the figure to the plot
         plot.appendFigure(figure_features.getFigure())
 

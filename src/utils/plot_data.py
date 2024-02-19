@@ -108,10 +108,11 @@ class PlotMultipleLayers(PlotBokeh):
         checkParameterString(figure_title)
         #checkParameterString(x_label)
         #checkParameterString(y_label)
-        if x_axis_type is None:
-            # Figure without predefined axis type (e.g. for histogram)
-            self.__own_figure = figure(title=figure_title, x_axis_label=x_label, y_axis_label=y_label)
+        if x_range is None:
+            # Figure without explicit x_range defined (e.g. for histogram or for datetime as x_axis)
+            self.__own_figure = figure(title=figure_title, x_axis_type=x_axis_type, x_axis_label=x_label, y_axis_label=y_label)
         else:
+            # Figure with explicit x_range (for the case that the bounds of the x-data cannot be determined automatically e.g. for categorical data)
             self.__own_figure = figure(title=figure_title, x_axis_type=x_axis_type, x_range=x_range, x_axis_label=x_label, y_axis_label=y_label)
         self.__own_logger.info("Bokeh plot for multiple layers initialized for figure %s", figure_title)
 
@@ -496,7 +497,7 @@ def figure_hist(logger, figure_title, x_label, y_label, edges, hist):
 
     try:
         logger.info("Figure for hist chart: %s", figure_title)
-        figure = PlotMultipleLayers(figure_title, x_axis_type=None, x_label=x_label, y_label=y_label)
+        figure = PlotMultipleLayers(figure_title, x_label=x_label, y_label=y_label)
         figure.addHist(edges, hist)
         return figure
     except TypeError as error:
@@ -531,7 +532,7 @@ def figure_hist_as_layers(logger, figure_title, x_label, y_label, layers, edges,
 
     try:
         logger.info("Figure for hist chart: %s", figure_title)
-        figure = PlotMultipleLayers(figure_title, x_axis_type=None, x_label=x_label, y_label=y_label)
+        figure = PlotMultipleLayers(figure_title, x_label=x_label, y_label=y_label)
         for (index, layer) in enumerate(layers):
             logger.info("Add Layer for %s", layer)
             figure.addHist(edges[index], hists[index], layer)
@@ -542,7 +543,7 @@ def figure_hist_as_layers(logger, figure_title, x_label, y_label, layers, edges,
 
 #########################################################
 
-def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_layers, y_datas, x_label=None):
+def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_layers, y_datas, x_label=None, set_x_range=False, x_axis_type='auto'):
     """
     Function to create a figure for time series data as multiple layers
     ----------
@@ -561,6 +562,10 @@ def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_l
             The y data to plot
         x_label : str
             The label of the x axis
+        set_x_range : Boolean
+            Set the x_data as x_range when creating a figure (for categorical data)
+        x_axis_type : str
+            The type of the x-axis
     ----------
     Returns:
         The figure
@@ -568,7 +573,10 @@ def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_l
 
     try:
         logger.info("Figure for times series data as multiple layers with title %s", figure_title)
-        figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=x_data)
+        if set_x_range:
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=x_data)
+        else:
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_axis_type=x_axis_type)
         for (index, layer) in enumerate(y_layers):
             logger.info("Add Layer for %s", layer)
             figure.addLineCircleLayer(layer, x_data, y_datas[index])

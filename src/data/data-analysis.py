@@ -248,31 +248,31 @@ if __name__ == "__main__":
     dict_visualization_data = {
         "label": ['duration'],
         "value": [data_collection.duration.astype(float)],
-        # As x_range take the number of the videos
-        "x_range": ["#{}".format(str(i)) for i in data_collection.video_number]
+        # As x_data take the number of the videos
+        "x_data": ["#{}".format(str(i)) for i in data_collection.video_number]
     }
     # Show Line-Circle Chart
-    figure_duration_time_series = figure_time_series_data_as_layers(__own_logger, "Länge der Videos", "Dauer in s", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
+    figure_duration_time_series = figure_time_series_data_as_layers(__own_logger, "Länge der Videos", "Dauer in s", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
     #bit_rate
     # Create dict for visualization data
     dict_visualization_data = {
         "label": ['bit_rate'],
         "value": [data_collection.bit_rate.astype(float)],
-        # As x_range take the number of the videos
-        "x_range": ["#{}".format(str(i)) for i in data_collection.video_number]
+        # As x_data take the number of the videos
+        "x_data": ["#{}".format(str(i)) for i in data_collection.video_number]
     }
     # Show Line-Circle Chart
-    figure_bit_rate_time_series = figure_time_series_data_as_layers(__own_logger, "Bitrate", "bit/s", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
+    figure_bit_rate_time_series = figure_time_series_data_as_layers(__own_logger, "Bitrate", "bit/s", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
     # nb_frames
     # Create dict for visualization data
     dict_visualization_data = {
         "label": ['nb_frames'],
         "value": [data_collection.nb_frames.astype(float)],
-        # As x_range take the number of the videos
-        "x_range": ["#{}".format(str(i)) for i in data_collection.video_number]
+        # As x_data take the number of the videos
+        "x_data": ["#{}".format(str(i)) for i in data_collection.video_number]
     }
     # Show Line-Circle Chart
-    figure_nb_frames_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl Frames", "Anzahl Frames", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
+    figure_nb_frames_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl Frames", "Anzahl Frames", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
     # manual_circle_detection_num_attempts
     # Count number of digits (detected time point in videos) which are seperated by '-'
     start_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_start_ms]
@@ -281,11 +281,11 @@ if __name__ == "__main__":
     dict_visualization_data = {
         "label": ['manual_circle_start_detection_count_attempts', 'manual_circle_stop_detection_count_attempts'],
         "value": [start_count, end_count],
-        # As x_range take the number of the videos
-        "x_range": ["#{}".format(str(i)) for i in data_collection.video_number]
+        # As x_data take the number of the videos
+        "x_data": ["#{}".format(str(i)) for i in data_collection.video_number]
     }
     # Show Line-Circle Chart
-    figure_manual_circle_detect_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl manuell detektierter Kreisflankenversuche", "Anzahl detektierter Zeitpunkte", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
+    figure_manual_circle_detect_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl manuell detektierter Kreisflankenversuche", "Anzahl detektierter Zeitpunkte", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
 
 
     # Create the plot with the created figures
