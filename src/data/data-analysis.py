@@ -275,8 +275,8 @@ if __name__ == "__main__":
     figure_nb_frames_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl Frames", "Anzahl Frames", dict_visualization_data.get('x_range'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos")
     # manual_circle_detection_num_attempts
     # Count number of digits (detected time point in videos) which are seperated by '-'
-    start_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_start_s]
-    end_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_end_s]
+    start_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_start_ms]
+    end_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_end_ms]
     # Create dict for visualization data
     dict_visualization_data = {
         "label": ['manual_circle_start_detection_count_attempts', 'manual_circle_stop_detection_count_attempts'],

@@ -156,14 +156,14 @@ if __name__ == "__main__":
         # Extract the video index from the video file name (video with name 1 is row 0 of metadata)
         video_idx = int(str(Path(filename).with_suffix(''))) - 1
         # Extract the list of manual detected start- and end-points of circles
-        start_list = [val.split('-') for val in metadata.manual_circle_start_s][video_idx]
-        end_list = [val.split('-') for val in metadata.manual_circle_end_s][video_idx]
+        start_list = [val.split('-') for val in metadata.manual_circle_start_ms][video_idx]
+        end_list = [val.split('-') for val in metadata.manual_circle_end_ms][video_idx]
         # Iterate over the start-points
         for time_idx, start_time in enumerate(start_list):
             # get the correspon dig end-point
             end_time = end_list[time_idx]
             # set the target value to 1 when circles are manually detected
-            features['circles_running'] = np.where((features['timestamp']/1000 > float(start_time)) & (features['timestamp']/1000 < float(end_time)), 1, features['circles_running'])
+            features['circles_running'] = np.where((features['timestamp'] > float(start_time)) & (features['timestamp'] < float(end_time)), 1, features['circles_running'])
 
         # Visualize the features
         # Create dict for visualization data
