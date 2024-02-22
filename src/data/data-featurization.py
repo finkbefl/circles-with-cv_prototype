@@ -179,7 +179,8 @@ if __name__ == "__main__":
 
         # Save the Data to CSV: Add the filename of the video without suffix to the csv filename
         filename_as_path = Path(filename)
-        save_data(features, data_modeling_path, "{0}_{1}{2}".format('features',filename_as_path.with_suffix(''), '.csv'))
+        # Save the data frame as features, but without timestamp column
+        save_data(features.drop('timestamp', axis=1), data_modeling_path, "{0}_{1}{2}".format('features',filename_as_path.with_suffix(''), '.csv'))
 
         # For testing purposes: Break the loop after processing the first video
         #break

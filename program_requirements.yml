@@ -76,7 +76,7 @@ dependencies:
   - nettle=3.6=he412f7d_0
   - nspr=4.35=h27087fc_0
   - nss=3.96=h1d7d5a4_0
-  - numpy=1.24.4=py38h59b608b_0
+  - numpy=1.22.4=py38h99721a1_0
   - olefile=0.47=pyhd8ed1ab_0
   - opencv=4.1.2=py38_2
   - openh264=1.8.0=hdbcaa40_1000
