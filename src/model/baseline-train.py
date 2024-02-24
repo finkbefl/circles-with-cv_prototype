@@ -40,7 +40,7 @@ if __name__ == "__main__":
     file_name = "baseline-train.html"
     file_title = "Training the baseline model"
     __own_logger.info("Plot %s as multiple figures to file %s", file_title, file_name)
-    plot = PlotMultipleFigures(os.path.join("output/baseline-train",file_name), file_title)
+    plot = PlotMultipleFigures(os.path.join("output/circles-detection",file_name), file_title)
 
     # Join the filepaths for the data
     data_raw_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw")
@@ -69,6 +69,10 @@ if __name__ == "__main__":
     # Concatenate the data in one frame by simply chain together the time series rows, but ignore the index of the rows to add so that we generate a continuous increasing index
     data_training = pd.concat(data_training_arr, ignore_index=True)
     log_overview_data_frame(__own_logger, data_training)
+
+    # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill bachward)
+    __own_logger.info("Detected missing data: %s", data_training.isna().sum())
+    data_training = data_training.fillna(method='bfill')
 
     # Visualize the training data
     # Create dict for visualization data
@@ -119,6 +123,10 @@ if __name__ == "__main__":
     # Concatenate the data in one frame by simply chain together the time series rows, but ignore the index of the rows to add so that we generate a continuous increasing index
     data_test = pd.concat(data_test_arr, ignore_index=True)
     log_overview_data_frame(__own_logger, data_test)
+
+    # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill bachward)
+    __own_logger.info("Detected missing data: %s", data_test.isna().sum())
+    data_test = data_test.fillna(method='bfill')
 
     # Visualize the test data
     # Create dict for visualization data

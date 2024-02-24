@@ -123,8 +123,15 @@ if __name__ == "__main__":
                 left_foot_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].y)
                 # Save timestamp of frame (in milli seconds)
                 timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
-            #else:
-                # TODO: If no landmarks are detected?
+            else:
+                # If no landmarks are detected: Set positions to Not a Number
+                right_foot_x_pos.append(np.NaN)
+                right_foot_y_pos.append(np.NaN)
+                left_foot_x_pos.append(np.NaN)
+                left_foot_y_pos.append(np.NaN)
+                # But the timestamp can be set correctly
+                timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
+
 
             # # Display the frame
             # cv2.imshow(f'Data Featurization', frame)

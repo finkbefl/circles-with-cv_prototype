@@ -39,7 +39,7 @@ if __name__ == "__main__":
     file_name = "baseline-eval.html"
     file_title = "Evaluation of the the baseline model"
     __own_logger.info("Plot %s as multiple figures to file %s", file_title, file_name)
-    plot = PlotMultipleFigures(os.path.join("output/baseline-eval",file_name), file_title)
+    plot = PlotMultipleFigures(os.path.join("output/circles-detection",file_name), file_title)
 
     # Join the filepaths for the data
     data_modeling_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "modeling")
