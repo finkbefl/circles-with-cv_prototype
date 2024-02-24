@@ -42,9 +42,13 @@ if __name__ == "__main__":
     plot = PlotMultipleFigures(os.path.join("output/circles-detection",file_name), file_title)
 
     # Join the filepaths for the data
+    data_raw_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw")
     data_modeling_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "modeling")
 
+    __own_logger.info("Path of the raw input data: %s", data_raw_path)
     __own_logger.info("Path of the modeling input data: %s", data_modeling_path)
+
+    # Overall evaluation
 
     # Get the test data
     data_test = load_data(data_modeling_path, "data_test.csv")
@@ -74,6 +78,32 @@ if __name__ == "__main__":
     figure_evaluation = figure_vbar(__own_logger, "Evaluierung", "Wert der Metrik", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
     # Append the figure to the plot
     plot.appendFigure(figure_evaluation.getFigure())
+
+    # Evaluation per video
+    # Get csv file, which was created during data collection and adapted during data analysis as DataFrame
+    metadata = load_data(data_raw_path, 'training_videos_with_metadata.csv')
+    # Iterate over all single evaluation data (get video index via tag in metadata column 'usage' with 'test')
+    for video_idx in metadata.index[metadata.usage == 'test']:
+        # The filename contains also a number, but starting from 1
+        video_name_num = video_idx + 1
+        eval_data_file_name = "data_test_{}.csv".format(video_name_num)
+        __own_logger.info("Single evaluation data detected: %s", eval_data_file_name)
+        # Get the data related to the specific video
+        data_specific_video = load_data(data_modeling_path, eval_data_file_name)
+        # Calc the metrics
+        accuracy = metrics.accuracy_score(data_specific_video.circles_running, data_specific_video.prediction)
+        __own_logger.info("Testdaten Video %d: Accuracy: %s",video_name_num, accuracy)
+        precision = metrics.precision_score(data_specific_video.circles_running, data_specific_video.prediction)
+        __own_logger.info("Testdaten Video %d: Precision: %s",video_name_num, precision)
+        recall = metrics.recall_score(data_specific_video.circles_running, data_specific_video.prediction)
+        __own_logger.info("Testdaten Video %d: Recall: %s",video_name_num, recall)
+        # Create a bar chart
+        figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall], set_x_range=True, color_sequencing=False)
+        # Append the figure to the plot
+        plot.appendFigure(figure_evaluation_single.getFigure())
+
+
+
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
 

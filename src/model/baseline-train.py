@@ -141,7 +141,7 @@ if __name__ == "__main__":
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
 
-    # Predict the target value for the test data
+    # Predict the target value for the whole test data
     y_pred = clf.predict(data_test.drop('circles_running', axis=1))
     data_test['prediction'] = y_pred
 
@@ -158,6 +158,26 @@ if __name__ == "__main__":
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
 
+    # Iterate over the single videos and using the single testdata for video-specific evalution
+    for idx, data_test_single_arr in enumerate(data_test_arr):
+        data_test_single = pd.DataFrame(data_test_single_arr)
+        # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill bachward)
+        data_test_single = data_test_single.fillna(method='bfill')
+        # For missing data at the end, the bfill mechanism not work, so do now a ffill
+        data_test_single = data_test_single.fillna(method='ffill')
+        # Predict the target value for the whole test data
+        y_pred_single = clf.predict(data_test_single.drop('circles_running', axis=1))
+        # Add prediciton to test data
+        data_test_single['prediction'] = y_pred_single
+        # Get video num
+        video_num = metadata.index[metadata.usage == 'test'][idx] + 1
+        # Save to CSV
+        save_data(data_test_single, data_modeling_path, "{0}_{1}.csv".format('data_test',video_num))
+        # Create a Line-Circle Chart
+        figure_test_data_single = figure_time_series_data_as_layers(__own_logger, "Testdaten Video {}: Vorhersage der Kreisflanken".format(video_num), "Kreisflanken detektiert", list(range(1, y_pred_single.size + 1)), dict_visualization_data.get('label'), [data_test_single.circles_running, y_pred_single], "Frame")
+        # Append the figure to the plot
+        plot.appendFigure(figure_test_data_single.getFigure())
+        
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
 
