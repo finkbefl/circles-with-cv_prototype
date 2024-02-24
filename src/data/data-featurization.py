@@ -28,6 +28,11 @@ from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar
 
 #########################################################
 
+# A flag to add the nose position as features
+ADD_NOSE_FEATURES = True
+
+#########################################################
+
 # Initialize the logger
 __own_logger = OwnLogging(Path(__file__).stem).logger
 
@@ -99,6 +104,8 @@ if __name__ == "__main__":
         right_foot_y_pos = []
         left_foot_x_pos = []
         left_foot_y_pos = []
+        nose_x_pos = []
+        nose_y_pos = []
         timestamp = []
         while cap.isOpened():
             # Read a frame
@@ -121,6 +128,9 @@ if __name__ == "__main__":
                 right_foot_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].y)
                 left_foot_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].x)
                 left_foot_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_FOOT_INDEX].y)
+                # Extract nose position
+                nose_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x)
+                nose_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].y)
                 # Save timestamp of frame (in milli seconds)
                 timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
             else:
@@ -129,6 +139,8 @@ if __name__ == "__main__":
                 right_foot_y_pos.append(np.NaN)
                 left_foot_x_pos.append(np.NaN)
                 left_foot_y_pos.append(np.NaN)
+                nose_x_pos.append(np.NaN)
+                nose_y_pos.append(np.NaN)
                 # But the timestamp can be set correctly
                 timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
 
@@ -147,6 +159,9 @@ if __name__ == "__main__":
         features['right_foot_y_pos'] = right_foot_y_pos
         features['left_foot_x_pos'] = left_foot_x_pos
         features['left_foot_y_pos'] = left_foot_y_pos
+        if ADD_NOSE_FEATURES:
+            features['nose_x_pos'] = nose_x_pos
+            features['nose_y_pos'] = nose_y_pos
 
         # Release everything if job is finished
         cap.release()

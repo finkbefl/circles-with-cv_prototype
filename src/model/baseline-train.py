@@ -101,7 +101,8 @@ if __name__ == "__main__":
     # clf = svm.SVC(kernel=grid_search.best_params_['kernel'], C=grid_search.best_params_['C'], gamma=grid_search.best_params_['gamma'])
 
     # If the optimal hyperparameter are already known: Create a svm Classifier
-    clf = svm.SVC(kernel='rbf', C=1000, gamma=1)
+    #clf = svm.SVC(kernel='rbf', C=1000, gamma=1)
+    clf = svm.SVC(kernel='rbf', C=10, gamma=1)
 
     #Train the model using the training sets
     clf.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)

@@ -56,15 +56,18 @@ if __name__ == "__main__":
     # Evaluation
     # Some variable initializations
     evaluation = []
-    # Model Accuracy
+    # Model Accuracy (Percentage of correct predictions): Number of correct predicitons / Number of all predictions
+    # Good when classes are well balanced
     accuracy = metrics.accuracy_score(data_test.circles_running, data_test.prediction)
     __own_logger.info("Accuracy: %s",accuracy)
 
-    # Model Precision
+    # Model Precision (Ratio of true positives correctly predicted) : Number of true positives / Number of all items matched positive by the algorithm
+    # Good if we want to be very sure that the positive prediction is correct
     precision = metrics.precision_score(data_test.circles_running, data_test.prediction)
     __own_logger.info("Precision: %s",precision)
 
-    # Model Recall
+    # Model Recall (how well the model is able to identify positive outcomes): Number of true positives / Number of actual real positives
+    # Good if we want to identify as many positive results as possible
     recall = metrics.recall_score(data_test.circles_running, data_test.prediction)
     __own_logger.info("Recall: %s",recall)
 
