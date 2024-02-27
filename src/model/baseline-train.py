@@ -9,7 +9,9 @@ from pathlib import Path
 import pandas as pd
 # sklearn: SVM Model
 from sklearn import svm
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, learning_curve
+# Numpy
+import numpy as np
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
@@ -87,25 +89,44 @@ if __name__ == "__main__":
     # Append the figure to the plot
     plot.appendFigure(figure_training_data.getFigure())
 
-    # # Hyperparameter Tuning with Grid Search
-    # param_grid = {  'kernel':('linear', 'poly', 'rbf', 'sigmoid'),
-    #                 'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
-    #                 'gamma':[0.0001, 0.001, 0.01, 1, 10, 100, 1000]}
-    # grid_search = GridSearchCV(svm.SVC(), 
-    #                        param_grid, 
-    #                        cv=3, 
-    #                        n_jobs=-1)
-    # grid_search.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)
-    # __own_logger.info("Best parameters are {} \nScore : {}%".format(grid_search.best_params_, grid_search.best_score_*100))
-    # # Create a svm Classifier
-    # clf = svm.SVC(kernel=grid_search.best_params_['kernel'], C=grid_search.best_params_['C'], gamma=grid_search.best_params_['gamma'])
+    # Hyperparameter Tuning with Grid Search: But restrict to rbf kernel
+    # For value of gamma: For 'scale' it uses 1 / (n_features * X.var()), for 'auto' 1 / n_features
+    tuning_parameters = [{'kernel': ['rbf'], 'gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'C': [1, 10, 100,1000]}]
+    #Define the model to be svm.SVC, specify the parameters space and scoring method
+    clf_gridsearch=GridSearchCV(svm.SVC(),tuning_parameters,scoring='accuracy')
+    # Use the training data to find the best params
+    clf_gridsearch.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)
+    # Print out the mean scores for the different set of parameters
+    means = clf_gridsearch.cv_results_['mean_test_score']
+    __own_logger.info("Mean scores for different set of parameters: %s", means)
+    # Print the best params
+    __own_logger.info("Best parameters are: {} \n With accuracy: {}%".format(clf_gridsearch.best_params_, clf_gridsearch.best_score_))
 
-    # If the optimal hyperparameter are already known: Create a svm Classifier
-    #clf = svm.SVC(kernel='rbf', C=1000, gamma=1)
-    clf = svm.SVC(kernel='rbf', C=10, gamma=1)
+    # Create a svm Classifier with the best params
+    clf_best=svm.SVC(kernel='rbf',C=clf_gridsearch.best_params_['C'],gamma=clf_gridsearch.best_params_['gamma'])
+
+    #Testing out the CV scores is not enough to ensure the accuracy of the model. One could still run into the problem of high bias (underfitting) or high variances (overfitting). To see if this is the case, one can plot the learning curve:
+    # Train size as fraction of the maximum size of the training set
+    train_sizes_as_fraction = np.linspace(0.1, 1.0, 10)
+    train_sizes, train_scores, valid_scores = learning_curve(clf_best,data_training.drop('circles_running', axis=1),data_training.circles_running,train_sizes=train_sizes_as_fraction,cv=5)
+    mean_train_scores=np.mean(train_scores,axis=1)
+    mean_valid_scores=np.mean(valid_scores,axis=1)
+    __own_logger.info("Mean train scores: %s", mean_train_scores)
+    __own_logger.info("Mean valid scores: %s", mean_valid_scores)
+    # Visualize the learning courve
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ["Training score", "Cross-validation score"],
+        "value": [mean_train_scores, mean_valid_scores],
+        "x_data": train_sizes_as_fraction
+    }
+    # Create a Line-Circle Chart
+    figure_learning_courve = figure_time_series_data_as_layers(__own_logger, "Lernkurve", "Score (Accuracy)", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Training Size")
+    # Append the figure to the plot
+    plot.appendFigure(figure_learning_courve.getFigure())
 
     #Train the model using the training sets
-    clf.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)
+    clf_best.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)
 
     # Get the Test Data
     # Some variable initializations
@@ -143,7 +164,7 @@ if __name__ == "__main__":
     plot.appendFigure(figure_test_data.getFigure())
 
     # Predict the target value for the whole test data
-    y_pred = clf.predict(data_test.drop('circles_running', axis=1))
+    y_pred = clf_best.predict(data_test.drop('circles_running', axis=1))
     data_test['prediction'] = y_pred
 
     # Visualize the prediction for the test data input
@@ -167,7 +188,7 @@ if __name__ == "__main__":
         # For missing data at the end, the bfill mechanism not work, so do now a ffill
         data_test_single = data_test_single.fillna(method='ffill')
         # Predict the target value for the whole test data
-        y_pred_single = clf.predict(data_test_single.drop('circles_running', axis=1))
+        y_pred_single = clf_best.predict(data_test_single.drop('circles_running', axis=1))
         # Add prediciton to test data
         data_test_single['prediction'] = y_pred_single
         # Get video num
