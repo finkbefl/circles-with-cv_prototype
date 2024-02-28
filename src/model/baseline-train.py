@@ -89,21 +89,24 @@ if __name__ == "__main__":
     # Append the figure to the plot
     plot.appendFigure(figure_training_data.getFigure())
 
-    # Hyperparameter Tuning with Grid Search: But restrict to rbf kernel
-    # For value of gamma: For 'scale' it uses 1 / (n_features * X.var()), for 'auto' 1 / n_features
-    tuning_parameters = [{'kernel': ['rbf'], 'gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'C': [1, 10, 100,1000]}]
-    #Define the model to be svm.SVC, specify the parameters space and scoring method
-    clf_gridsearch=GridSearchCV(svm.SVC(),tuning_parameters,scoring='accuracy')
-    # Use the training data to find the best params
-    clf_gridsearch.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)
-    # Print out the mean scores for the different set of parameters
-    means = clf_gridsearch.cv_results_['mean_test_score']
-    __own_logger.info("Mean scores for different set of parameters: %s", means)
-    # Print the best params
-    __own_logger.info("Best parameters are: {} \n With accuracy: {}%".format(clf_gridsearch.best_params_, clf_gridsearch.best_score_))
+    # # Hyperparameter Tuning with Grid Search: But restrict to rbf kernel
+    # # For value of gamma: For 'scale' it uses 1 / (n_features * X.var()), for 'auto' 1 / n_features
+    # tuning_parameters = [{'kernel': ['rbf'], 'gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'C': [1, 10, 100,1000]}]
+    # #Define the model to be svm.SVC, specify the parameters space and scoring method
+    # clf_gridsearch=GridSearchCV(svm.SVC(),tuning_parameters,scoring='accuracy')
+    # # Use the training data to find the best params
+    # clf_gridsearch.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)
+    # # Print out the mean scores for the different set of parameters
+    # means = clf_gridsearch.cv_results_['mean_test_score']
+    # __own_logger.info("Mean scores for different set of parameters: %s", means)
+    # # Print the best params
+    # __own_logger.info("Best parameters are: {} \n With score: {}%".format(clf_gridsearch.best_params_, clf_gridsearch.best_score_))
 
-    # Create a svm Classifier with the best params
-    clf_best=svm.SVC(kernel='rbf',C=clf_gridsearch.best_params_['C'],gamma=clf_gridsearch.best_params_['gamma'])
+    # # Create a svm Classifier with the best params
+    # clf_best=svm.SVC(kernel='rbf',C=clf_gridsearch.best_params_['C'],gamma=clf_gridsearch.best_params_['gamma'])
+
+    # Create a svm Classifier with the best params: To speed up the training if the best params are already known
+    clf_best=svm.SVC(kernel='rbf',C=1000,gamma='auto')
 
     #Testing out the CV scores is not enough to ensure the accuracy of the model. One could still run into the problem of high bias (underfitting) or high variances (overfitting). To see if this is the case, one can plot the learning curve:
     # Train size as fraction of the maximum size of the training set
@@ -121,7 +124,7 @@ if __name__ == "__main__":
         "x_data": train_sizes_as_fraction
     }
     # Create a Line-Circle Chart
-    figure_learning_courve = figure_time_series_data_as_layers(__own_logger, "Lernkurve", "Score (Accuracy)", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Training Size")
+    figure_learning_courve = figure_time_series_data_as_layers(__own_logger, "Lernkurve", "Score", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Training Size")
     # Append the figure to the plot
     plot.appendFigure(figure_learning_courve.getFigure())
 
