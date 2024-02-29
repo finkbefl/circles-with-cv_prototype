@@ -9,6 +9,8 @@ from pathlib import Path
 import pandas as pd
 # sklearn: Metrics
 from sklearn import metrics
+# Serialization of the trained model
+from joblib import load
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
@@ -48,10 +50,89 @@ if __name__ == "__main__":
     __own_logger.info("Path of the raw input data: %s", data_raw_path)
     __own_logger.info("Path of the modeling input data: %s", data_modeling_path)
 
-    # Overall evaluation
+    # Get csv file, which was created during data collection and adapted during data analysis as DataFrame
+    metadata = load_data(data_raw_path, 'training_videos_with_metadata.csv')
 
-    # Get the test data
-    data_test = load_data(data_modeling_path, "data_test.csv")
+    # Get the Test Data
+    # Some variable initializations
+    data_test_arr = []
+    # Iterate over all data where selected as test data (tagged in metadata column 'usage' with 'test')
+    for video_idx in metadata.index[metadata.usage == 'test']:
+       # The filename of the video contains also a number, but starting from 1
+       video_name_num = video_idx + 1
+       test_data_file_name = "features_{}.csv".format(video_name_num)
+       __own_logger.info("Testing data detected: %s", test_data_file_name)
+       # Get the data related to the specific video
+       data_specific_video = load_data(data_modeling_path, test_data_file_name)
+       # Merge all data in one array
+       data_test_arr.append(data_specific_video)
+
+    # Concatenate the data in one frame by simply chain together the time series rows, but ignore the index of the rows to add so that we generate a continuous increasing index
+    data_test = pd.concat(data_test_arr, ignore_index=True)
+    log_overview_data_frame(__own_logger, data_test)
+
+    # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill bachward)
+    __own_logger.info("Detected missing data: %s", data_test.isna().sum())
+    data_test = data_test.fillna(method='bfill')
+
+    # Visualize the test data
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": data_test.columns.values, # Take all columns for visualization in dataframe
+        "value": [data_test[data_test.columns.values][col] for col in data_test[data_test.columns.values]],
+        # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
+        "x_data": data_test.index + 1
+    }
+    # Create a Line-Circle Chart
+    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Positionen der Füße", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    # Append the figure to the plot
+    plot.appendFigure(figure_test_data.getFigure())
+
+    # Get the trained svm classifier via joblib
+    file_path = os.path.join(data_modeling_path, 'baseline-svm-model.joblib')
+    clf = load(file_path)
+
+    # Predict the target value for the whole test data
+    y_pred = clf.predict(data_test.drop('circles_running', axis=1))
+    data_test['prediction'] = y_pred
+
+    # Visualize the prediction for the test data input
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": [data_test.circles_running.name, data_test.prediction.name],
+        "value": [data_test.circles_running.values, data_test.prediction.values],
+        # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
+        "x_data": data_test.index + 1
+    }
+    # Create a Line-Circle Chart
+    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Kreisflanken", "Kreisflanken detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    # Append the figure to the plot
+    plot.appendFigure(figure_test_data.getFigure())
+
+    # Iterate over the single videos and using the single testdata for video-specific evalution
+    for idx, data_test_single_arr in enumerate(data_test_arr):
+        data_test_single = pd.DataFrame(data_test_single_arr)
+        # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill bachward)
+        data_test_single = data_test_single.fillna(method='bfill')
+        # For missing data at the end, the bfill mechanism not work, so do now a ffill
+        data_test_single = data_test_single.fillna(method='ffill')
+        # Predict the target value for the whole test data
+        y_pred_single = clf.predict(data_test_single.drop('circles_running', axis=1))
+        # Add prediciton to test data
+        data_test_single['prediction'] = y_pred_single
+        # Get video num
+        video_num = metadata.index[metadata.usage == 'test'][idx] + 1
+        # Save to CSV
+        save_data(data_test_single, data_modeling_path, "{0}_{1}.csv".format('data_test',video_num))
+        # Create a Line-Circle Chart
+        figure_test_data_single = figure_time_series_data_as_layers(__own_logger, "Testdaten Video {}: Vorhersage der Kreisflanken".format(video_num), "Kreisflanken detektiert", list(range(1, y_pred_single.size + 1)), dict_visualization_data.get('label'), [data_test_single.circles_running, y_pred_single], "Frame")
+        # Append the figure to the plot
+        plot.appendFigure(figure_test_data_single.getFigure())
+
+    # Save the testing Data to csv
+    save_data(data_test, data_modeling_path, "data_test.csv")
+
+    # Overall evaluation
 
     # Evaluation
     # Some variable initializations
