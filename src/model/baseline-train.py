@@ -66,7 +66,10 @@ if __name__ == "__main__":
        train_data_file_name = "features_{}.csv".format(video_name_num)
        __own_logger.info("Training data detected: %s", train_data_file_name)
        # Get the data related to the specific video
-       data_specific_video = load_data(data_modeling_path, train_data_file_name)
+       try:
+            data_specific_video = load_data(data_modeling_path, train_data_file_name)
+       except FileNotFoundError as error:
+           __own_logger.error("########## Error when trying to access training data ##########", exc_info=error)
        # Merge all data in one array
        data_training_arr.append(data_specific_video)
 

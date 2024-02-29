@@ -83,6 +83,10 @@ if __name__ == "__main__":
         elif not (file_path_pure.suffix == '.mov' or file_path_pure.suffix == '.mp4'):
             continue
 
+        # # Possibility to skip videos with dedicated number for testing reasons: E.g. skip all videos with number 7-9 due to bad perspective for landmark detection
+        # if int(filename.split('.')[0]) >= 7 and int(filename.split('.')[0]) <= 9:
+        #         continue
+
         __own_logger.info("Detected input video file: %s", filename)
 
         # Initialize MediaPipe Pose and Drawing utilities
