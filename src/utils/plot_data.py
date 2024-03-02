@@ -1,6 +1,10 @@
 # Class to plot data with bokeh
 
 # Import the external packages
+# Operating system functionalities
+import sys
+import os
+# Plotting with bokeh
 from bokeh.plotting import figure, show
 from bokeh.io import output_file
 from bokeh.layouts import gridplot, column
@@ -38,6 +42,9 @@ class PlotBokeh():
         if file_name is not None and file_title is not None:
             checkParameterString(file_name)
             checkParameterString(file_title)
+            # Create directory if it not exist
+            if not os.path.exists(os.path.dirname(file_name)):
+                os.makedirs(os.path.dirname(file_name))
             output_file(file_name, title=file_title)
             self.__own_logger.info("Bokeh plot initialized for output file %s", file_name)
         elif file_name is None and file_title is None:
@@ -101,10 +108,11 @@ class PlotMultipleLayers(PlotBokeh):
         checkParameterString(figure_title)
         #checkParameterString(x_label)
         #checkParameterString(y_label)
-        if x_axis_type is None:
-            # Figure without predefined axis type (e.g. for histogram)
-            self.__own_figure = figure(title=figure_title, x_axis_label=x_label, y_axis_label=y_label)
+        if x_range is None:
+            # Figure without explicit x_range defined (e.g. for histogram or for datetime as x_axis)
+            self.__own_figure = figure(title=figure_title, x_axis_type=x_axis_type, x_axis_label=x_label, y_axis_label=y_label)
         else:
+            # Figure with explicit x_range (for the case that the bounds of the x-data cannot be determined automatically e.g. for categorical data)
             self.__own_figure = figure(title=figure_title, x_axis_type=x_axis_type, x_range=x_range, x_axis_label=x_label, y_axis_label=y_label)
         self.__own_logger.info("Bokeh plot for multiple layers initialized for figure %s", figure_title)
 
@@ -184,7 +192,7 @@ class PlotMultipleLayers(PlotBokeh):
 
         self.__own_logger.info("Added vbar layer")
 
-    def addHist(self, edges, hist):
+    def addHist(self, edges, hist, legend_label=None):
         """
         Add a histogram layer to the figure
         ----------
@@ -193,6 +201,8 @@ class PlotMultipleLayers(PlotBokeh):
             The bins edges data to plot
         hist : numbers.Real
             The histogram data to plot
+        legend_label : str
+                The legend label of the layer
         ----------
         Returns:
             no returns
@@ -201,7 +211,11 @@ class PlotMultipleLayers(PlotBokeh):
         #checkParameter(x_data, Real)
         #checkParameter(y_data, Real)
         # add a plot to the figure
-        self.__own_figure.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], line_color="white")
+        if legend_label is None:
+            self.__own_figure.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], line_color="white")
+        else :
+            # When legend_labels are defined, then we assume that we need multiple layers  with different colors and the bars should be visible with transparent colors to get overlaps visible
+            self.__own_figure.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], line_color="white", legend_label=legend_label, color=next(self.__color_iter), fill_alpha=0.6)
         self.__own_logger.info("Added hist layer")
 
     def set_axis_range(self, x_min=None, x_max=None, y_min=None, y_max=None):
@@ -416,3 +430,157 @@ class PlotMultipleFigures(PlotBokeh):
         self.__own_logger.info("Show the column layout")
         plot = column(self.__figure_list, sizing_mode=sizing_mode)
         show(plot)
+
+#########################################################
+
+def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True, color_sequencing=True):
+    """
+    Function to create a vbar chart figure
+    ----------
+    Parameters:
+        logger : Logger
+            The Logger to log with
+        figure_title : str
+            The title of the figure
+        y_label : str
+            The label of the y axis
+        x_data : numbers.Real
+            The x data to plot
+        y_data : numbers.Real
+            The y data to plot
+        set_x_range : boolean
+            set the x_data as range of the x-axis (for categorical data)
+        color_sequencing : boolean
+            A flag, whether every bar sould be drawn in another color with the known color sequence
+    ----------
+    Returns:
+        The bokeh class
+    """
+
+    try:
+        logger.info("Figure for vbar chart: %s", figure_title)
+        # Set the x_data as x_range (for categorical data)?
+        if set_x_range:
+            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=x_data)
+        # Dont set the x_range
+        else:
+            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=None)
+        figure.addVBarLayer(x_data, y_data, color_sequencing=color_sequencing)
+        return figure
+    except TypeError as error:
+        logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')
+
+#########################################################
+
+def figure_hist(logger, figure_title, x_label, y_label, edges, hist):
+    """
+    Function to create a histogram chart figure
+    ----------
+    Parameters:
+        logger : Logger
+            The Logger to log with
+        figure_title : str
+            The title of the figure
+        x_label : str
+            The label of the x axis
+        y_label : str
+            The label of the y axis
+        edges : numbers.Real
+            The bins edges data to plot
+        hist : numbers.Real
+            The histogram data to plot
+    ----------
+    Returns:
+        The bokeh class
+    """
+
+    try:
+        logger.info("Figure for hist chart: %s", figure_title)
+        figure = PlotMultipleLayers(figure_title, x_label=x_label, y_label=y_label)
+        figure.addHist(edges, hist)
+        return figure
+    except TypeError as error:
+        logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')
+
+#########################################################
+        
+def figure_hist_as_layers(logger, figure_title, x_label, y_label, layers, edges, hists):
+    """
+    Function to create a histogram chart figure as multiple layers
+    ----------
+    Parameters:
+        logger : Logger
+            The Logger to log with
+        figure_title : str
+            The title of the figure
+        x_label : str
+            The label of the x axis
+        y_label : str
+            The label of the y axis
+        layers : array
+            The names of the layers
+        edges : DataFrame
+            The bins edges data to plot
+        hists : DataFrame
+            The histogram data to plot
+    ----------
+    Returns:
+        The bokeh class
+    """
+
+    try:
+        logger.info("Figure for hist chart: %s", figure_title)
+        figure = PlotMultipleLayers(figure_title, x_label=x_label, y_label=y_label)
+        for (index, layer) in enumerate(layers):
+            logger.info("Add Layer for %s", layer)
+            figure.addHist(edges[index], hists[index], layer)
+        return figure
+    except TypeError as error:
+        logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')
+
+#########################################################
+
+def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_layers, y_datas, x_label=None, set_x_range=False, x_axis_type='auto'):
+    """
+    Function to create a figure for time series data as multiple layers
+    ----------
+    Parameters:
+        logger : Logger
+            The Logger to log with
+        figure_title : str
+            The title of the figure
+        y_label : str
+            The label of the y axis
+        x_data : Series
+                The x data to plot
+        y_layers : array
+            The names of the layers
+        y_datas : list of Series
+            The y data to plot
+        x_label : str
+            The label of the x axis
+        set_x_range : Boolean
+            Set the x_data as x_range when creating a figure (for categorical data)
+        x_axis_type : str
+            The type of the x-axis
+    ----------
+    Returns:
+        The figure
+    """
+
+    try:
+        logger.info("Figure for times series data as multiple layers with title %s", figure_title)
+        if set_x_range:
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=x_data)
+        else:
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_axis_type=x_axis_type)
+        for (index, layer) in enumerate(y_layers):
+            logger.info("Add Layer for %s", layer)
+            figure.addLineCircleLayer(layer, x_data, y_datas[index])
+        return figure
+    except TypeError as error:
+        logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')

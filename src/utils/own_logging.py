@@ -6,6 +6,8 @@
 import logging
 # Operating system functionalities
 import os
+# Stream handling
+import io
 
 class OwnLogging():
     """
@@ -72,3 +74,27 @@ class OwnLogging():
         Boolean, if the logger level is DEBUG.
         """
         return True if self.__logger.getEffectiveLevel() == logging.DEBUG else False
+
+#########################################################
+
+def log_overview_data_frame(logger, df):
+    """
+    Logging some information about the data frame
+    ----------
+    Parameters:
+        logger : Logger
+                The Logger to log with
+        df : pandas.core.frame.DataFrame
+                The data
+    ----------
+    Returns:
+        no returns
+    """
+
+    # Print the first 5 rows
+    logger.info("Data Structure (first 5 rows): %s", df.head(5))
+    # Print some information (pipe output of DataFrame.info to buffer instead of sys.stdout for correct logging)
+    buffer = io.StringIO()
+    buffer.write("Data Info: ")
+    df.info(buf=buffer)
+    logger.info(buffer.getvalue())

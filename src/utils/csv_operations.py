@@ -67,17 +67,18 @@ def save_data(df, dirname, filename):
 
 #########################################################
 
-def convert_date_in_data_frame(df):
+def convert_series_into_date(df_series, unit=None):
     """
-    Function to convert the date object into DateTime
+    Function to convert the date objects of a pandas series into DateTime
     ----------
     Parameters:
-        df : pandas.core.frame.DataFrame
+        df : pandas.core.series.Series
             The data
+        unit : the unit of the date objects
     ----------
     Returns:
-        no returns
+        The converted data as series
     """
 
     # Convert the date objects into DateTime (raise an exception when parsing is invalid)
-    df.date = pd.to_datetime(df.date, errors='raise', utc=True)
+    return pd.to_datetime(df_series, errors='raise', utc=True, unit=unit)
