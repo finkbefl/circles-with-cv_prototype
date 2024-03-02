@@ -111,6 +111,7 @@ if __name__ == "__main__":
         nose_x_pos = []
         nose_y_pos = []
         timestamp = []
+        missing_data = []
         while cap.isOpened():
             # Read a frame
             ret, frame = cap.read()
@@ -137,6 +138,8 @@ if __name__ == "__main__":
                 nose_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].y)
                 # Save timestamp of frame (in milli seconds)
                 timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
+                # Label the data row with "no missing data"
+                missing_data.append(False)
             else:
                 # If no landmarks are detected: Set positions to Not a Number
                 right_foot_x_pos.append(np.NaN)
@@ -147,6 +150,8 @@ if __name__ == "__main__":
                 nose_y_pos.append(np.NaN)
                 # But the timestamp can be set correctly
                 timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
+                # Label the data row with "missing data"
+                missing_data.append(True)
 
 
             # # Display the frame
@@ -159,6 +164,7 @@ if __name__ == "__main__":
             #     break
 
         # Add the collected features to the DataFrame
+        features['missing_data'] = missing_data
         features['right_foot_x_pos'] = right_foot_x_pos
         features['right_foot_y_pos'] = right_foot_y_pos
         features['left_foot_x_pos'] = left_foot_x_pos
@@ -174,9 +180,9 @@ if __name__ == "__main__":
         # Add the timestamps to to the features DataFrame
         features['timestamp'] = timestamp
 
-        # Create the target variable: Set it to 1 when the circle is running, otherwise 0 
-        # Add a column with zeros as preinitialization
-        features['circles_running'] = 0
+        # Create the target variable: Set it to True when the circle is running, otherwise False
+        # Add a column with False values as preinitialization
+        features['circles_running'] = False
         # Extract the video index from the video file name (video with name 1 is row 0 of metadata)
         video_idx = int(str(Path(filename).with_suffix(''))) - 1
         # Extract the list of manual detected start- and end-points of circles
@@ -186,8 +192,8 @@ if __name__ == "__main__":
         for time_idx, start_time in enumerate(start_list):
             # get the correspon dig end-point
             end_time = end_list[time_idx]
-            # set the target value to 1 when circles are manually detected
-            features['circles_running'] = np.where((features['timestamp'] >= float(start_time)) & (features['timestamp'] <= float(end_time)), 1, features['circles_running'])
+            # set the target value to True when circles are manually detected
+            features['circles_running'] = np.where((features['timestamp'] >= float(start_time)) & (features['timestamp'] <= float(end_time)), True, features['circles_running'])
 
         # Visualize the features
         # Create dict for visualization data

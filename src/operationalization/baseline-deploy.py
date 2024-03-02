@@ -112,7 +112,7 @@ if __name__ == "__main__":
             #__own_logger.info("Landmarks detected")
 
             # Draw the relevant pose landmarks on the frame
-            mp_drawing.draw_landmarks(frame, result.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+            # mp_drawing.draw_landmarks(frame, result.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
             # Extract footpositions (normalized to the width and the heigth of the image)
             right_foot_x_pos = result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].x
@@ -141,8 +141,8 @@ if __name__ == "__main__":
             # If no landmarks detected
             # Bigger size of the image for better visualization
             frame = cv2.resize(frame, (1920,1080), interpolation=cv2.INTER_CUBIC)
-            # set circle detection to "not running" (red): Signaling the detection of circles
-            frame = cv2.circle(frame, (1820,80), radius=50, color=(0, 0, 255), thickness=-1)
+            # Dont change the Signaling for the detection of circles, so if no landmarks are detected, no change of the last status will be "predictedSSSSSSSSSS"
+            
 
         # Naming a window
         window_name = "Data Featurization"

@@ -77,9 +77,10 @@ if __name__ == "__main__":
     data_training = pd.concat(data_training_arr, ignore_index=True)
     log_overview_data_frame(__own_logger, data_training)
 
-    # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill bachward)
+    # Handling missing data (frames with no detected landmarks)
     __own_logger.info("Detected missing data: %s", data_training.isna().sum())
-    data_training = data_training.fillna(method='bfill')
+    # Backward filling (take the next observation and fill bachward) for rows which where initially labeled as missing-data
+    data_training = data_training.mask(data_training.missing_data == True, data_training.fillna(method='bfill'))
 
     # Visualize the training data
     # Create dict for visualization data
@@ -100,7 +101,7 @@ if __name__ == "__main__":
     # #Define the model to be svm.SVC, specify the parameters space and scoring method
     # clf_gridsearch=GridSearchCV(svm.SVC(),tuning_parameters,scoring='accuracy')
     # # Use the training data to find the best params
-    # clf_gridsearch.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)
+    # clf_gridsearch.fit(data_training.drop(['circles_running', 'missing_data'], axis=1), data_training.circles_running)
     # # Print out the mean scores for the different set of parameters
     # means = clf_gridsearch.cv_results_['mean_test_score']
     # __own_logger.info("Mean scores for different set of parameters: %s", means)
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     #Testing out the CV scores is not enough to ensure the accuracy of the model. One could still run into the problem of high bias (underfitting) or high variances (overfitting). To see if this is the case, one can plot the learning curve:
     # Train size as fraction of the maximum size of the training set
     train_sizes_as_fraction = np.linspace(0.1, 1.0, 10)
-    train_sizes, train_scores, valid_scores = learning_curve(clf_best,data_training.drop('circles_running', axis=1),data_training.circles_running,train_sizes=train_sizes_as_fraction,cv=5)
+    train_sizes, train_scores, valid_scores = learning_curve(clf_best,data_training.drop(['circles_running', 'missing_data'], axis=1),data_training.circles_running,train_sizes=train_sizes_as_fraction,cv=5)
     mean_train_scores=np.mean(train_scores,axis=1)
     mean_valid_scores=np.mean(valid_scores,axis=1)
     __own_logger.info("Mean train scores: %s", mean_train_scores)
@@ -134,7 +135,7 @@ if __name__ == "__main__":
     plot.appendFigure(figure_learning_courve.getFigure())
 
     #Train the model using the training sets
-    clf_best.fit(data_training.drop('circles_running', axis=1), data_training.circles_running)
+    clf_best.fit(data_training.drop(['circles_running', 'missing_data'], axis=1), data_training.circles_running)
         
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')

@@ -9,6 +9,8 @@ from pathlib import Path
 import pandas as pd
 # sklearn: Metrics
 from sklearn import metrics
+# Numpy
+import numpy as np
 # Serialization of the trained model
 from joblib import load
 
@@ -74,9 +76,10 @@ if __name__ == "__main__":
     data_test = pd.concat(data_test_arr, ignore_index=True)
     log_overview_data_frame(__own_logger, data_test)
 
-    # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill bachward)
+    # Handling missing data (frames with no detected landmarks)
     __own_logger.info("Detected missing data: %s", data_test.isna().sum())
-    data_test = data_test.fillna(method='bfill')
+    # Backward filling (take the next observation and fill backward) for rows which where initially labeled as missing-data
+    data_test = data_test.mask(data_test.missing_data == True, data_test.fillna(method='bfill'))
 
     # Visualize the test data
     # Create dict for visualization data
@@ -96,14 +99,21 @@ if __name__ == "__main__":
     clf = load(file_path)
 
     # Predict the target value for the whole test data
-    y_pred = clf.predict(data_test.drop('circles_running', axis=1))
+    y_pred = clf.predict(data_test.drop(['circles_running', 'missing_data'], axis=1))
     data_test['prediction'] = y_pred
+    # add False (circles not running) for rows with missing data?
+    # data_test['prediction'] = np.where(data_test.missing_data, 0, y_pred)
+    # A better approch is to check, if there is a change in the prediction-value at the points of missing_data, if so, use the value before to avoid the change
+    __own_logger.info("Number of changes in prediction before correction regarding missing_data: %d", len(data_test.prediction[data_test.prediction.diff().replace(np.nan, 0) != 0]))
+    data_test.prediction = np.where(data_test.missing_data & data_test.prediction.diff().replace(np.nan, 0) != 0, data_test.prediction.fillna(method='ffill'), data_test.prediction)
+    __own_logger.info("Number of changes in prediction after correction regarding missing_data: %d", len(data_test.prediction[data_test.prediction.diff().replace(np.nan, 0) != 0]))
+
 
     # Visualize the prediction for the test data input
     # Create dict for visualization data
     dict_visualization_data = {
-        "label": [data_test.circles_running.name, data_test.prediction.name],
-        "value": [data_test.circles_running.values, data_test.prediction.values],
+        "label": [data_test.missing_data.name, data_test.circles_running.name, data_test.prediction.name],
+        "value": [data_test.missing_data.values, data_test.circles_running.values, data_test.prediction.values],
         # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
         "x_data": data_test.index + 1
     }
@@ -115,12 +125,12 @@ if __name__ == "__main__":
     # Iterate over the single videos and using the single testdata for video-specific evalution
     for idx, data_test_single_arr in enumerate(data_test_arr):
         data_test_single = pd.DataFrame(data_test_single_arr)
-        # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill bachward)
-        data_test_single = data_test_single.fillna(method='bfill')
+        # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill backward) for rows which where initially labeled as missing-data
+        data_test_single = data_test_single.mask(data_test_single.missing_data == True, data_test_single.fillna(method='bfill'))
         # For missing data at the end, the bfill mechanism not work, so do now a ffill
-        data_test_single = data_test_single.fillna(method='ffill')
+        data_test_single = data_test_single.mask(data_test_single.missing_data == True, data_test_single.fillna(method='ffill'))
         # Predict the target value for the whole test data
-        y_pred_single = clf.predict(data_test_single.drop('circles_running', axis=1))
+        y_pred_single = clf.predict(data_test_single.drop(['circles_running', 'missing_data'], axis=1))
         # Add prediciton to test data
         data_test_single['prediction'] = y_pred_single
         # Get video num
@@ -128,7 +138,7 @@ if __name__ == "__main__":
         # Save to CSV
         save_data(data_test_single, data_modeling_path, "{0}_{1}.csv".format('data_test',video_num))
         # Create a Line-Circle Chart
-        figure_test_data_single = figure_time_series_data_as_layers(__own_logger, "Testdaten Video {}: Vorhersage der Kreisflanken".format(video_num), "Kreisflanken detektiert", list(range(1, y_pred_single.size + 1)), dict_visualization_data.get('label'), [data_test_single.circles_running, y_pred_single], "Frame")
+        figure_test_data_single = figure_time_series_data_as_layers(__own_logger, "Testdaten Video {}: Vorhersage der Kreisflanken".format(video_num), "Kreisflanken detektiert", list(range(1, y_pred_single.size + 1)), dict_visualization_data.get('label'), [data_test_single.missing_data, data_test_single.circles_running, y_pred_single], "Frame")
         # Append the figure to the plot
         plot.appendFigure(figure_test_data_single.getFigure())
 
@@ -142,16 +152,19 @@ if __name__ == "__main__":
     evaluation = []
     # Model Accuracy (Percentage of correct predictions): Number of correct predicitons / Number of all predictions
     # Good when classes are well balanced
+    # Optimizations with regard to this metric means, that as many correct predictions as possible are made without placing a greater emphasis on a particular class
     accuracy = metrics.accuracy_score(data_test.circles_running, data_test.prediction)
     __own_logger.info("Accuracy: %s",accuracy)
 
-    # Model Precision (Ratio of true positives correctly predicted) : Number of true positives / Number of all items matched positive by the algorithm
+    # Model Precision (Ratio of true positives correctly predicted) : Number of predicted true positives / Number of all items matched positive by the algorithm (predicted true positives + predicted false pisitives)
     # Good if we want to be very sure that the positive prediction is correct
+    # Optimizations with regard to this metric means, that emphasis is placed on ensuring that the positive predictions are actually positive
     precision = metrics.precision_score(data_test.circles_running, data_test.prediction)
     __own_logger.info("Precision: %s",precision)
 
-    # Model Recall (how well the model is able to identify positive outcomes): Number of true positives / Number of actual real positives
+    # Model Recall (how well the model is able to identify positive outcomes): Number of predicted true positives / Number of actual real positives (predicted true positives + predicted false negatives)
     # Good if we want to identify as many positive results as possible
+    # Optimizations with regard to this metric means, that emphasis is placed on identifying as many actual positives as possible
     recall = metrics.recall_score(data_test.circles_running, data_test.prediction)
     __own_logger.info("Recall: %s",recall)
 
