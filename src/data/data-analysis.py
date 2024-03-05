@@ -292,7 +292,7 @@ if __name__ == "__main__":
     file_name = "data-analysis.html"
     file_title = "Explorative Datenanalyse"
     __own_logger.info("Plot %s as multiple figures to file %s", file_title, file_name)
-    plot = PlotMultipleFigures(os.path.join("output/circles-detection",file_name), file_title)
+    plot = PlotMultipleFigures(os.path.join("output",file_name), file_title)
     plot.appendFigure(figure_loc_hist.getFigure())
     plot.appendFigure(figure_device_hist.getFigure())
     plot.appendFigure(figure_manual_preproc_hist.getFigure())

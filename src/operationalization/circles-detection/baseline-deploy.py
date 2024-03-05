@@ -22,7 +22,7 @@ import time
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "src")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "src")))
 # To handle the Logging for all modules in the same way
 from utils.own_logging import OwnLogging, log_overview_data_frame
 # To handle csv files
@@ -33,7 +33,7 @@ from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar
 #########################################################
 
 # Initialize the logger
-__own_logger = OwnLogging(Path(__file__).stem).logger
+__own_logger = OwnLogging("circles-detection_" + Path(__file__).stem).logger
 
 #########################################################
 #########################################################
@@ -52,8 +52,8 @@ if __name__ == "__main__":
     plot = PlotMultipleFigures(os.path.join("output/circles-detection",file_name), file_title)
 
     # Join the filepaths for the data
-    data_modeling_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "modeling")
-    deployment_video_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw", "deployment")
+    data_modeling_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "modeling", "circles-detection")
+    deployment_video_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "raw", "deployment")
 
     __own_logger.info("Path of the modeling input data: %s", data_modeling_path)
 

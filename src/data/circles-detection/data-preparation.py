@@ -20,7 +20,7 @@ from fractions import Fraction
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "src")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "src")))
 # To handle the Logging for all modules in the same way
 from utils.own_logging import OwnLogging, log_overview_data_frame
 # To handle csv files
@@ -31,7 +31,7 @@ from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar
 #########################################################
 
 # Initialize the logger
-__own_logger = OwnLogging(Path(__file__).stem).logger
+__own_logger = OwnLogging("circles-detection_" + Path(__file__).stem).logger
 
 #########################################################
 #########################################################
@@ -44,8 +44,8 @@ if __name__ == "__main__":
     __own_logger.info("########## START ##########")
 
     # Join the filepaths for the data
-    data_raw_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw")
-    data_processed_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "processed")
+    data_raw_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "raw")
+    data_processed_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "processed", "circles-detection")
 
     __own_logger.info("Path of the raw input data: %s", data_raw_path)
     __own_logger.info("Path of the processed output data: %s", data_processed_path)
