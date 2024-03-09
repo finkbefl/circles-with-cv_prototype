@@ -98,6 +98,9 @@ if __name__ == "__main__":
         # Open the video file
         __own_logger.info("########## Open the video file ##########")
         cap = cv2.VideoCapture(file_input_path)
+
+        # Get the fps of the video
+        fps = cap.get(cv2.CAP_PROP_FPS)
  
         # Iterate over every single frame
         __own_logger.info("########## Iterate over every single frame ##########")
@@ -186,12 +189,17 @@ if __name__ == "__main__":
         # Extract the video index from the video file name (video with name 1 is row 0 of metadata)
         video_idx = int(str(Path(filename).with_suffix(''))) - 1
         # Extract the list of manual detected start- and end-points of circles
-        start_list = [val.split('-') for val in metadata.manual_circle_start_ms][video_idx]
-        end_list = [val.split('-') for val in metadata.manual_circle_end_ms][video_idx]
+        start_list = [val.split('-') for val in metadata.manual_circle_start_kdenlive][video_idx]
+        end_list = [val.split('-') for val in metadata.manual_circle_end_kdenlive][video_idx]
         # Iterate over the start-points
-        for time_idx, start_time in enumerate(start_list):
-            # get the correspon dig end-point
-            end_time = end_list[time_idx]
+        for time_idx, start_stamp in enumerate(start_list):
+            # extract the second and the number of frame, seperated by ':'
+            start_stamp = start_stamp.split(':')
+            # get the corresponding end-point
+            end_stamp = end_list[time_idx].split(':')
+            # calculate the timestamps out of the second and the frame number within this second
+            start_time = (float(start_stamp[0]) + ((1/fps) * int(start_stamp[1]))) * 1000
+            end_time = (float(end_stamp[0]) + ((1/fps) * int(end_stamp[1]))) * 1000
             # set the target value to True when circles are manually detected
             features['circles_running'] = np.where((features['timestamp'] >= float(start_time)) & (features['timestamp'] <= float(end_time)), True, features['circles_running'])
 
