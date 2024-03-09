@@ -64,6 +64,7 @@ if __name__ == "__main__":
     # Join the filepath of the raw data file
     file_input_path = os.path.join(deployment_video_path, "20240112_Dunningen_IphoneSE_KevinKieninger_FlorianFinkbeiner.mov")
     #file_input_path = os.path.join(deployment_video_path, "20240112_Dunningen_Xiaomi11Lite5GNE_FlorianFinkbeiner_KevinKieninger.mp4")
+    #file_input_path = os.path.join(deployment_video_path, "20240308_Dunningen_IphoneSE_AndreasAbleitner.MOV")
     __own_logger.info("Input video: %s", file_input_path)
 
     # Initialize MediaPipe Pose and Drawing utilities
