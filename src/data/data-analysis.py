@@ -274,9 +274,9 @@ if __name__ == "__main__":
     # Show Line-Circle Chart
     figure_nb_frames_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl Frames", "Anzahl Frames", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
     # manual_circle_detection_num_attempts
-    # Count number of digits (detected time point in videos) which are seperated by '-'
-    start_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_start_ms]
-    end_count = [(sum(inner.isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_end_ms]
+    # Count number of digits (detected time point in videos) which are seperated by '-' (The "timestamp" of kdenlive consists of the timestamp in seconds, and the number of the frame for this second, seperated by ':')
+    start_count = [(sum(inner.split(':')[0].isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_start_kdenlive]
+    end_count = [(sum(inner.split(':')[0].isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_end_kdenlive]
     # Create dict for visualization data
     dict_visualization_data = {
         "label": ['manual_circle_start_detection_count_attempts', 'manual_circle_stop_detection_count_attempts'],
