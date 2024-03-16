@@ -125,7 +125,7 @@ if __name__ == "__main__":
             nose_y_pos = result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].y
 
             # Predict the target value
-            y_pred_single = clf.predict(pd.DataFrame({'right_foot_x_pos':right_foot_x_pos, 'right_foot_y_pos':right_foot_y_pos, 'left_foot_x_pos':left_foot_x_pos, 'left_foot_y_pos':left_foot_y_pos, 'nose_x_pos':nose_x_pos, 'nose_y_pos':nose_y_pos}, index=[0]))
+            y_pred_single = clf.predict(pd.DataFrame({'right_foot_x_pos':right_foot_x_pos, 'right_foot_y_pos':right_foot_y_pos, 'left_foot_x_pos':left_foot_x_pos, 'left_foot_y_pos':left_foot_y_pos, 'nose_x_pos':nose_x_pos, 'nose_y_pos':nose_y_pos}, index=[0]).to_numpy())
             print(y_pred_single)
 
             # Bigger size of the image for better visualization
@@ -142,7 +142,7 @@ if __name__ == "__main__":
             # If no landmarks detected
             # Bigger size of the image for better visualization
             frame = cv2.resize(frame, (1920,1080), interpolation=cv2.INTER_CUBIC)
-            # Dont change the Signaling for the detection of circles, so if no landmarks are detected, no change of the last status will be "predictedSSSSSSSSSS"
+            # Dont change the Signaling for the detection of circles, so if no landmarks are detected, no change of the last status will be "predicted"
             
 
         # Naming a window

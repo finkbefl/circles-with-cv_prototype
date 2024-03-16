@@ -99,7 +99,7 @@ if __name__ == "__main__":
     clf = load(file_path)
 
     # Predict the target value for the whole test data
-    y_pred = clf.predict(data_test.drop(['circles_running', 'missing_data'], axis=1))
+    y_pred = clf.predict(data_test.drop(['circles_running', 'missing_data'], axis=1).to_numpy())
     data_test['prediction'] = y_pred
     # add False (circles not running) for rows with missing data?
     # data_test['prediction'] = np.where(data_test.missing_data, 0, y_pred)
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         # For missing data at the end, the bfill mechanism not work, so do now a ffill
         data_test_single = data_test_single.mask(data_test_single.missing_data == True, data_test_single.fillna(method='ffill'))
         # Predict the target value for the whole test data
-        y_pred_single = clf.predict(data_test_single.drop(['circles_running', 'missing_data'], axis=1))
+        y_pred_single = clf.predict(data_test_single.drop(['circles_running', 'missing_data'], axis=1).to_numpy())
         # Add prediciton to test data
         data_test_single['prediction'] = y_pred_single
         # Get video num

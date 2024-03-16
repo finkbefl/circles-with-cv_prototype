@@ -10,10 +10,13 @@ import pandas as pd
 # sklearn: SVM Model
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV, learning_curve
+from sklearn.preprocessing import StandardScaler
 # Numpy
 import numpy as np
 # Serialization of the trained model
 from joblib import dump
+# Time series transformation with seglearn
+import seglearn as sgl
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
@@ -96,28 +99,47 @@ if __name__ == "__main__":
     plot.appendFigure(figure_training_data.getFigure())
 
     # # Hyperparameter Tuning with Grid Search: But restrict to rbf kernel
+    # # Using a pipeline: Scale the data and then propagate the data to the model (when segmentation is needed, then we need the sklearn pipeline extension from seglearn, only scaler and model would also be possible wit sklearn pipeline)
+    # pipeline = sgl.Pype([
+    #     #("seg", sgl.Segment()), 
+    #     #("features", sgl.FeatureRep()), 
+    #     ("scaler", StandardScaler()), 
+    #     ("svc", svm.SVC())])
     # # For value of gamma: For 'scale' it uses 1 / (n_features * X.var()), for 'auto' 1 / n_features
-    # tuning_parameters = [{'kernel': ['rbf'], 'gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'C': [1, 10, 100,1000]}]
+    # tuning_parameters = [{'svc__kernel': ['rbf'], 'svc__gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'svc__C': [1, 10, 100,1000]}]
+    # #tuning_parameters = [{'svc__kernel': ['rbf'], 'svc__gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'svc__C': [1, 10, 100,1000], 'seg__width': [5], 'seg__overlap': [0.5]}]
     # #Define the model to be svm.SVC, specify the parameters space and scoring method
-    # clf_gridsearch=GridSearchCV(svm.SVC(),tuning_parameters,scoring='accuracy')
+    # clf_gridsearch=GridSearchCV(pipeline,tuning_parameters,scoring='accuracy')
     # # Use the training data to find the best params
-    # clf_gridsearch.fit(data_training.drop(['circles_running', 'missing_data'], axis=1), data_training.circles_running)
+    # clf_gridsearch.fit(data_training.drop(['circles_running', 'missing_data'], axis=1).to_numpy(), data_training.circles_running.to_numpy())
     # # Print out the mean scores for the different set of parameters
     # means = clf_gridsearch.cv_results_['mean_test_score']
     # __own_logger.info("Mean scores for different set of parameters: %s", means)
     # # Print the best params
     # __own_logger.info("Best parameters are: {} \n With score: {}%".format(clf_gridsearch.best_params_, clf_gridsearch.best_score_))
 
+    # # Using the best params for segmentation
+    # #segment_best = sgl.Segment(clf_gridsearch.best_params_['seg__width'], clf_gridsearch.best_params_['seg__overlap'])
     # # Create a svm Classifier with the best params
-    # clf_best=svm.SVC(kernel='rbf',C=clf_gridsearch.best_params_['C'],gamma=clf_gridsearch.best_params_['gamma'])
+    # clf_best=svm.SVC(kernel=clf_gridsearch.best_params_['svc__kernel'],C=clf_gridsearch.best_params_['svc__C'],gamma=clf_gridsearch.best_params_['svc__gamma'])
 
-    # Create a svm Classifier with the best params: To speed up the training if the best params are already known
-    clf_best=svm.SVC(kernel='rbf',C=1000,gamma='auto')
+    # Create segmentation and a svm Classifier with the best params: To speed up the training if the best params are already known
+    clf_best=svm.SVC(kernel='rbf',C=100,gamma=0.01)
+    #segment_best = sgl.Segment(width=1, overlap=0.5)
+
+    # Using the pipeline, which includes data scaling
+    scaler = StandardScaler()
+    scaler.fit(data_training.drop(['circles_running', 'missing_data'], axis=1))
+    pipeline = sgl.Pype([
+        #("seg", segment_best),
+        #("features", sgl.FeatureRep()), 
+        ("scaler", scaler), 
+        ("svc", clf_best)])
 
     #Testing out the CV scores is not enough to ensure the accuracy of the model. One could still run into the problem of high bias (underfitting) or high variances (overfitting). To see if this is the case, one can plot the learning curve:
     # Train size as fraction of the maximum size of the training set
     train_sizes_as_fraction = np.linspace(0.1, 1.0, 10)
-    train_sizes, train_scores, valid_scores = learning_curve(clf_best,data_training.drop(['circles_running', 'missing_data'], axis=1),data_training.circles_running,train_sizes=train_sizes_as_fraction,cv=5)
+    train_sizes, train_scores, valid_scores = learning_curve(pipeline,data_training.drop(['circles_running', 'missing_data'], axis=1).to_numpy(),data_training.circles_running.to_numpy(),train_sizes=train_sizes_as_fraction,cv=5)
     mean_train_scores=np.mean(train_scores,axis=1)
     mean_valid_scores=np.mean(valid_scores,axis=1)
     __own_logger.info("Mean train scores: %s", mean_train_scores)
@@ -135,7 +157,7 @@ if __name__ == "__main__":
     plot.appendFigure(figure_learning_courve.getFigure())
 
     #Train the model using the training sets
-    clf_best.fit(data_training.drop(['circles_running', 'missing_data'], axis=1), data_training.circles_running)
+    pipeline.fit(data_training.drop(['circles_running', 'missing_data'], axis=1).to_numpy(), data_training.circles_running.to_numpy())
         
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
@@ -146,4 +168,4 @@ if __name__ == "__main__":
 
     # Save the trained model with joblib
     file_path = os.path.join(data_modeling_path, 'baseline-svm-model.joblib')
-    dump(clf_best, file_path) 
+    dump(pipeline, file_path) 
