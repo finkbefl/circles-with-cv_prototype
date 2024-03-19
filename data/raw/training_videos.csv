@@ -10,13 +10,13 @@ video_number,location_group,device_name,manual_preprocessing,manual_circle_start
 9,1,xiaomi_11lite5gne,Cut-time,2:13-5:15-8:16-11:17-14:13,3:16-6:21-10:03-12:19-16:00,true-true-true-true-true,train
 10,1,xiaomi_mi10lite5g,no,3:15-8:15,4:23-14:13,true-false,train
 11,1,xiaomi_mi10lite5g,no,0:10-9:02-12:00,1:03-9:27-13:04,true-true-true,train
-12,1,iphone_se,no,8:09-12:21-17:08-19:29-24:25-29:28-34:17-39:12-44:08,10:08-14:20-18:10-22:00-27:27-32:00-36:17-41:11-46:08,false-false-true-false-false-false-false-false-false,train
+12,1,iphone_se,no,8:09-12:21-17:08-19:29-24:25-29:28-34:17-39:12-44:08,10:08-14:20-18:10-22:00-27:27-32:00-36:17-41:11-46:08,false-false-false-false-false-false-false-false-false,train
 13,2,iphone_se,Cut-time,15:07-19:16,16:17-22:23,false-false,train
 14,2,iphone_se,Cut-time,8:28-14:28-22:11-25:17,11:28-19:15-23:13-29:21,false-false-false-false,train
 15,2,iphone_se,Cut-time,3:11,15:01,false,train
 16,2,iphone_se,no,4:14,12:13,false,train
-17,2,iphone_se,no,5:01-8:11,6:02-10:07,true-false,test
-18,2,iphone_se,no,3:01-9:17,4:09-11:04,false-true,train
+17,2,iphone_se,no,5:01-8:11,6:02-10:07,false-false,test
+18,2,iphone_se,no,3:01-9:17,4:09-11:04,false-false,train
 19,3,google_pixel5,no,1:06,9:28,false,train
 20,3,google_pixel5,no,3:18,11:02,false,test
 21,3,google_pixel5,no,4:19-9:18-14:13,5:07-10:05-15:02,true-true-true,train

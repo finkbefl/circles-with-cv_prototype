@@ -30,6 +30,9 @@ from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar
 
 # A flag to add the nose position as features
 ADD_NOSE_FEATURES = True
+# A flag to add additional features (shoulder, knee and hip positions)
+# TODO: Exclude some features in visualizations because of perceptibility and maximum number of colors in the bokeh diagrams 
+ADD_ADDITIONAL_FEATURES = False
 
 #########################################################
 
@@ -114,6 +117,18 @@ if __name__ == "__main__":
         left_foot_y_pos = []
         nose_x_pos = []
         nose_y_pos = []
+        right_shoulder_x_pos = []
+        right_shoulder_y_pos = []
+        left_shoulder_x_pos = []
+        left_shoulder_y_pos = []
+        right_knee_x_pos = []
+        right_knee_y_pos = []
+        left_knee_x_pos = []
+        left_knee_y_pos = []
+        right_hip_x_pos = []
+        right_hip_y_pos = []
+        left_hip_x_pos = []
+        left_hip_y_pos = []
         timestamp = []
         missing_data = []
         while cap.isOpened():
@@ -140,6 +155,21 @@ if __name__ == "__main__":
                 # Extract nose position
                 nose_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].x)
                 nose_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE].y)
+                # Extract shoulder positions
+                right_shoulder_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].x)
+                right_shoulder_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER].y)
+                left_shoulder_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].x)
+                left_shoulder_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER].y)
+                # Extract knee positions
+                right_knee_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_KNEE].x)
+                right_knee_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_KNEE].y)
+                left_knee_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_KNEE].x)
+                left_knee_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_KNEE].y)
+                # Extract hip positions
+                right_hip_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_HIP].x)
+                right_hip_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_HIP].y)
+                left_hip_x_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_HIP].x)
+                left_hip_y_pos.append(result.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_HIP].y)
                 # Save timestamp of frame (in milli seconds)
                 timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
                 # Label the data row with "no missing data"
@@ -152,6 +182,18 @@ if __name__ == "__main__":
                 left_foot_y_pos.append(np.NaN)
                 nose_x_pos.append(np.NaN)
                 nose_y_pos.append(np.NaN)
+                right_shoulder_x_pos.append(np.NaN)
+                right_shoulder_y_pos.append(np.NaN)
+                left_shoulder_x_pos.append(np.NaN)
+                left_shoulder_y_pos.append(np.NaN)
+                right_knee_x_pos.append(np.NaN)
+                right_knee_y_pos.append(np.NaN)
+                left_knee_x_pos.append(np.NaN)
+                left_knee_y_pos.append(np.NaN)
+                right_hip_x_pos.append(np.NaN)
+                right_hip_y_pos.append(np.NaN)
+                left_hip_x_pos.append(np.NaN)
+                left_hip_y_pos.append(np.NaN)
                 # But the timestamp can be set correctly
                 timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
                 # Label the data row with "missing data"
@@ -176,6 +218,19 @@ if __name__ == "__main__":
         if ADD_NOSE_FEATURES:
             features['nose_x_pos'] = nose_x_pos
             features['nose_y_pos'] = nose_y_pos
+        if ADD_ADDITIONAL_FEATURES:
+            features['right_shoulder_x_pos'] = right_shoulder_x_pos
+            features['right_shoulder_y_pos'] = right_shoulder_y_pos
+            features['left_shoulder_x_pos'] = left_shoulder_x_pos
+            features['left_shoulder_y_pos'] = left_shoulder_y_pos
+            features['right_knee_x_pos'] = right_knee_x_pos
+            features['right_knee_y_pos'] = right_knee_y_pos
+            features['left_knee_x_pos'] = left_knee_x_pos
+            features['left_knee_y_pos'] = left_knee_y_pos
+            features['right_hip_x_pos'] = right_hip_x_pos
+            features['right_hip_y_pos'] = right_hip_y_pos
+            features['left_hip_x_pos'] = left_hip_x_pos
+            features['left_hip_y_pos'] = left_hip_y_pos
 
         # Release everything if job is finished
         cap.release()

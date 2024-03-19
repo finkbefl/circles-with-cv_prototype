@@ -33,7 +33,7 @@ from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar
 #########################################################
 
 # Initialize the logger
-__own_logger = OwnLogging("circles-detection_" + Path(__file__).stem).logger
+__own_logger = OwnLogging("circles-performance_" + Path(__file__).stem).logger
 
 #########################################################
 #########################################################
@@ -49,10 +49,10 @@ if __name__ == "__main__":
     file_name = "baseline-deploy.html"
     file_title = "Deployment of the the baseline model"
     __own_logger.info("Plot %s as multiple figures to file %s", file_title, file_name)
-    plot = PlotMultipleFigures(os.path.join("output/circles-detection",file_name), file_title)
+    plot = PlotMultipleFigures(os.path.join("output/circles-performance",file_name), file_title)
 
     # Join the filepaths for the data
-    data_modeling_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "modeling", "circles-detection")
+    data_modeling_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "modeling", "circles-performance")
     deployment_video_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "raw", "deployment")
 
     __own_logger.info("Path of the modeling input data: %s", data_modeling_path)
@@ -131,9 +131,9 @@ if __name__ == "__main__":
             # Bigger size of the image for better visualization
             frame = cv2.resize(frame, (1920,1080), interpolation=cv2.INTER_CUBIC)
 
-            # Signaling the detection of circles
-            if y_pred_single[0]:
-                # Green dot when circle is detected
+            # Signaling the prediction of performance
+            if not y_pred_single[0]:
+                # Green dot when the frame is not predicted with lack of amplitude
                 frame = cv2.circle(frame, (1820,80), radius=50, color=(0, 255, 0), thickness=-1)
             else:
                 # red if not
@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
         # Add some text
         cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
-        cv2.putText(frame,"Circle running:",(1500,80),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+        cv2.putText(frame,"Amplitude:",(1500,80),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
 
         # Get the frame rate of the source video
         fps =  cap.get(cv2.CAP_PROP_FPS)
