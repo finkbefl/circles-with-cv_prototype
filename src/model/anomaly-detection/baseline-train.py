@@ -130,8 +130,17 @@ if __name__ == "__main__":
         data_train_single = data_train_single.mask(data_train_single.missing_data == True, data_train_single.fillna(method='ffill'))
         # Predict the anomalies: Returns -1 for outliers and 1 for inliers.
         anomalies_pred_single = (pipeline.predict(data_train_single.drop(['missing_data'], axis=1).to_numpy()) == -1)
+        # Merge the data for visualization
+        data_visualization = data_train_single
+        data_visualization['anomalies_pred'] = anomalies_pred_single
+        # Create dict for visualization data
+        dict_visualization_data = {
+            "label": data_visualization.columns.values, # Take all columns for visualization in dataframe
+            "value": [data_visualization[data_visualization.columns.values][col] for col in data_visualization[data_visualization.columns.values]],
+            "x_data": list(range(1, anomalies_pred_single.size + 1))
+        }
         # # Create a Line-Circle Chart
-        figure_train_data_single = figure_time_series_data_as_layers(__own_logger, "Trainingsdaten Video {}: Vorhersage der Anomalien".format(idx), "Anomalien detektiert", list(range(1, anomalies_pred_single.size + 1)), ['anomalies_pred'], [anomalies_pred_single], "Frame")
+        figure_train_data_single = figure_time_series_data_as_layers(__own_logger, "Trainingsdaten Video {}: Vorhersage der Anomalien".format(idx), "Anomalien detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
         # # Append the figure to the plot
         plot.appendFigure(figure_train_data_single.getFigure())
         
