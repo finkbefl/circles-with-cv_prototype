@@ -111,7 +111,8 @@ if __name__ == "__main__":
         ("scaler", StandardScaler()), 
         # Define the model to be svm.OneClassSVM
         # For value of gamma: For 'scale' it uses 1 / (n_features * X.var()), for 'auto' 1 / n_features
-        ("svc", svm.OneClassSVM(kernel='rbf', gamma='auto', nu=0.03))])
+        # nu controls the proportion of outliers allowed. For nu=0.1: training samples that are wrongly classified are not allowed to take up more than 10 percent of all training samples. Also, at least 10 percent of the training samples are support vectors. 
+        ("svc", svm.OneClassSVM(kernel='rbf', gamma='auto', nu=0.1))])
 
     #Fit the model using the training sets
     pipeline.fit(data_training.drop(['missing_data'], axis=1).to_numpy(), [])
