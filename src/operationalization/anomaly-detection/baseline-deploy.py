@@ -287,6 +287,7 @@ if __name__ == "__main__":
     # Iterate over the start-indizes
     for idx, start_index in enumerate(start_index_arr):
         # If stop_index is None, then only a single frame was affected, which will be ignored
+        # TODO: Ignore video-parts with e.g. less then 5 frames?
         if end_index_arr[idx] is not None:
             # Define the start- and end-frame
             # TODO: Use some additional preceding and following frames for visualization?
