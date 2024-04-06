@@ -64,8 +64,8 @@ if __name__ == "__main__":
     # Get the Training Data
     # Some variable initializations
     data_training_arr = []
-    # Iterate over all data where selected as training data (tagged in metadata column 'usage' with 'train')
-    for video_idx in metadata.index[metadata.usage == 'train']:
+    # Iterate over all data where selected as training data (tagged in metadata column 'validation' with 'no')
+    for video_idx in metadata.index[metadata.validation == 'no']:
         # The filename of the video contains also a number, but starting from 1
         video_name_num = video_idx + 1
         # Get all seperated training data (features) per raw video
@@ -82,14 +82,43 @@ if __name__ == "__main__":
                     # Merge all data in one array
                     data_training_arr.append(data_specific_video)
 
+    __own_logger.info("Find %d Videos for Training", len(data_training_arr))
+
+    # Get the Validation Data
+    # Some variable initializations
+    data_validation_arr = []
+    # Iterate over all data where selected as validation data (tagged in metadata column 'validation' with 'yes')
+    for video_idx in metadata.index[metadata.validation == 'yes']:
+        # The filename of the video contains also a number, but starting from 1
+        video_name_num = video_idx + 1
+        # Get all seperated training data (features) per raw video
+        regex = re.compile('features_{}_.\.csv'.format(video_name_num))
+        for dirpath, dirnames, filenames in os.walk(data_modeling_path):
+            for valid_data_file_name in filenames:
+                if regex.match(valid_data_file_name):
+                    __own_logger.info("Validation data detected: %s", valid_data_file_name)
+                    # Get the data related to the specific video
+                    try:
+                            data_specific_video = load_data(data_modeling_path, valid_data_file_name)
+                    except FileNotFoundError as error:
+                        __own_logger.error("########## Error when trying to access training data ##########", exc_info=error)
+                    # Merge all data in one array
+                    data_validation_arr.append(data_specific_video)
+                    
+    __own_logger.info("Find %d Videos for Validation", len(data_validation_arr))
+
     # Concatenate the data in one frame by simply chain together the time series rows, but ignore the index of the rows to add so that we generate a continuous increasing index
     data_training = pd.concat(data_training_arr, ignore_index=True)
     log_overview_data_frame(__own_logger, data_training)
+    data_validation = pd.concat(data_validation_arr, ignore_index=True)
+    log_overview_data_frame(__own_logger, data_validation)
 
     # Handling missing data (frames with no detected landmarks)
-    __own_logger.info("Detected missing data: %s", data_training.isna().sum())
+    __own_logger.info("Training Data: Detected missing data: %s", data_training.isna().sum())
+    __own_logger.info("Validation Data: Detected missing data: %s", data_validation.isna().sum())
     # Backward filling (take the next observation and fill bachward) for rows which where initially labeled as missing-data
     data_training = data_training.mask(data_training.missing_data == True, data_training.fillna(method='bfill'))
+    data_validation = data_validation.mask(data_validation.missing_data == True, data_validation.fillna(method='bfill'))
 
     # Visualize the training data
     # Create dict for visualization data
@@ -103,6 +132,19 @@ if __name__ == "__main__":
     figure_training_data = figure_time_series_data_as_layers(__own_logger, "Trainingsdaten: Positionen der Füße", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
     # Append the figure to the plot
     plot.appendFigure(figure_training_data.getFigure())
+
+    # Visualize the validation data
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": data_validation.columns.values, # Take all columns for visualization in dataframe
+        "value": [data_validation[data_validation.columns.values][col] for col in data_validation[data_validation.columns.values]],
+        # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
+        "x_data": data_validation.index + 1
+    }
+    # Create a Line-Circle Chart
+    figure_validation_data = figure_time_series_data_as_layers(__own_logger, "Validierungsdaten: Positionen der Füße", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    # Append the figure to the plot
+    plot.appendFigure(figure_validation_data.getFigure())
 
     # Using a pipeline: Scale the data and then propagate the data to the model (when segmentation is needed, then we need the sklearn pipeline extension from seglearn, only scaler and model would also be possible wit sklearn pipeline)
     pipeline = sgl.Pype([
@@ -122,7 +164,7 @@ if __name__ == "__main__":
     __own_logger.info("Number of detected outliers: %s", anomalies_pred.sum())
 
     # Get the anomalies per video
-    # Iterate over the single videos and using the single trainingdata
+    # Iterate over the single videos and using the single training data
     for idx, data_train_single_arr in enumerate(data_training_arr):
         data_train_single = pd.DataFrame(data_train_single_arr)
         # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill backward) for rows which where initially labeled as missing-data
@@ -141,9 +183,31 @@ if __name__ == "__main__":
             "x_data": list(range(1, anomalies_pred_single.size + 1))
         }
         # # Create a Line-Circle Chart
-        figure_train_data_single = figure_time_series_data_as_layers(__own_logger, "Trainingsdaten Video {}: Vorhersage der Anomalien".format(idx), "Anomalien detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+        figure_train_data_single = figure_time_series_data_as_layers(__own_logger, "Trainingsdaten Video {}: Vorhersage der Anomalien".format(idx+1), "Anomalien detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
         # # Append the figure to the plot
         plot.appendFigure(figure_train_data_single.getFigure())
+    # Iterate over the single videos and using the single validation data
+    for idx, data_validation_single_arr in enumerate(data_validation_arr):
+        data_valid_single = pd.DataFrame(data_validation_single_arr)
+        # Handling missing data (frames with no detected landmarks): Backward filling (take the next observation and fill backward) for rows which where initially labeled as missing-data
+        data_valid_single = data_valid_single.mask(data_valid_single.missing_data == True, data_valid_single.fillna(method='bfill'))
+        # For missing data at the end, the bfill mechanism not work, so do now a ffill
+        data_valid_single = data_valid_single.mask(data_valid_single.missing_data == True, data_valid_single.fillna(method='ffill'))
+        # Predict the anomalies: Returns -1 for outliers and 1 for inliers.
+        anomalies_pred_single = (pipeline.predict(data_valid_single.drop(['missing_data'], axis=1).to_numpy()) == -1)
+        # Merge the data for visualization
+        data_visualization = data_valid_single
+        data_visualization['anomalies_pred'] = anomalies_pred_single
+        # Create dict for visualization data
+        dict_visualization_data = {
+            "label": data_visualization.columns.values, # Take all columns for visualization in dataframe
+            "value": [data_visualization[data_visualization.columns.values][col] for col in data_visualization[data_visualization.columns.values]],
+            "x_data": list(range(1, anomalies_pred_single.size + 1))
+        }
+        # # Create a Line-Circle Chart
+        figure_valid_data_single = figure_time_series_data_as_layers(__own_logger, "Validierungsdaten Video {}: Vorhersage der Anomalien".format(idx+1), "Anomalien detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+        # # Append the figure to the plot
+        plot.appendFigure(figure_valid_data_single.getFigure())
         
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
