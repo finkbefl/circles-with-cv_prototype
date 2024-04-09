@@ -172,8 +172,6 @@ if __name__ == "__main__":
     # Overall evaluation
 
     # Evaluation
-    # Some variable initializations
-    evaluation = []
     # Model Accuracy (Percentage of correct predictions): Number of correct predicitons / Number of all predictions
     # Good when classes are well balanced
     # Optimizations with regard to this metric means, that as many correct predictions as possible are made without placing a greater emphasis on a particular class

@@ -105,7 +105,7 @@ if __name__ == "__main__":
     clf = load(file_path)
 
     # Predict the target value for the whole test data: Returns -1 for outliers and 1 for inliers.
-    y_pred = (clf.predict(data_test.drop(['missing_data'], axis=1).to_numpy()) == -1)
+    y_pred = (clf.predict(data_test.drop(['missing_data', 'anomaly'], axis=1).to_numpy()) == -1)
     data_test['prediction'] = y_pred
     # add False (no anomaly) for rows with missing data
     __own_logger.info("Number of missing_data, for which the anomaly is set to false: %d", data_test.missing_data.sum())
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         # For missing data at the end, the bfill mechanism not work, so do now a ffill
         data_test_single = data_test_single.mask(data_test_single.missing_data == True, data_test_single.fillna(method='ffill'))
         # Predict the target value for the whole test data: Returns -1 for outliers and 1 for inliers.
-        y_pred_single = (clf.predict(data_test_single.drop(['missing_data'], axis=1).to_numpy()) == -1)
+        y_pred_single = (clf.predict(data_test_single.drop(['missing_data', 'anomaly'], axis=1).to_numpy()) == -1)
         # Add prediciton to test data
         data_test_single['prediction'] = y_pred_single
         # add False (no anomaly) for rows with missing data
@@ -173,6 +173,61 @@ if __name__ == "__main__":
 
     # Save the testing Data to csv
     save_data(data_test, data_modeling_path, "data_test.csv")
+
+        # Overall evaluation
+
+    # Evaluation
+    # Model Accuracy (Percentage of correct predictions): Number of correct predicitons / Number of all predictions
+    # Good when classes are well balanced
+    # Optimizations with regard to this metric means, that as many correct predictions as possible are made without placing a greater emphasis on a particular class
+    accuracy = metrics.accuracy_score(data_test.anomaly, data_test.prediction)
+    __own_logger.info("Accuracy: %s",accuracy)
+
+    # Model Precision (Ratio of true positives correctly predicted) : Number of predicted true positives / Number of all items matched positive by the algorithm (predicted true positives + predicted false pisitives)
+    # Good if we want to be very sure that the positive prediction is correct
+    # Optimizations with regard to this metric means, that emphasis is placed on ensuring that the positive predictions are actually positive
+    precision = metrics.precision_score(data_test.anomaly, data_test.prediction)
+    __own_logger.info("Precision: %s",precision)
+
+    # Model Recall (how well the model is able to identify positive outcomes): Number of predicted true positives / Number of actual real positives (predicted true positives + predicted false negatives)
+    # Good if we want to identify as many positive results as possible
+    # Optimizations with regard to this metric means, that emphasis is placed on identifying as many actual positives as possible
+    recall = metrics.recall_score(data_test.anomaly, data_test.prediction)
+    __own_logger.info("Recall: %s",recall)
+
+    # Visualize the metrics
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ["accuracy", "precision", "recall"],
+        "value": [accuracy, precision, recall]
+    }
+    # Create a bar chart
+    figure_evaluation = figure_vbar(__own_logger, "Evaluierung", "Wert der Metrik", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
+    # Append the figure to the plot
+    plot.appendFigure(figure_evaluation.getFigure())
+
+    # Evaluation per video
+    # Get csv file, which was created during data collection and adapted during data analysis as DataFrame
+    metadata = load_data(data_raw_path, 'training_videos_with_metadata.csv')
+    # Iterate over all single evaluation data (get video index via tag in metadata column 'usage' with 'test')
+    for video_idx in metadata.index[metadata.usage == 'test']:
+        # The filename contains also a number, but starting from 1
+        video_name_num = video_idx + 1
+        eval_data_file_name = "data_test_{}.csv".format(video_name_num)
+        __own_logger.info("Single evaluation data detected: %s", eval_data_file_name)
+        # Get the data related to the specific video
+        data_specific_video = load_data(data_modeling_path, eval_data_file_name)
+        # Calc the metrics
+        accuracy = metrics.accuracy_score(data_specific_video.anomaly, data_specific_video.prediction)
+        __own_logger.info("Testdaten Video %d: Accuracy: %s",video_name_num, accuracy)
+        precision = metrics.precision_score(data_specific_video.anomaly, data_specific_video.prediction)
+        __own_logger.info("Testdaten Video %d: Precision: %s",video_name_num, precision)
+        recall = metrics.recall_score(data_specific_video.anomaly, data_specific_video.prediction)
+        __own_logger.info("Testdaten Video %d: Recall: %s",video_name_num, recall)
+        # Create a bar chart
+        figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall], set_x_range=True, color_sequencing=False)
+        # Append the figure to the plot
+        plot.appendFigure(figure_evaluation_single.getFigure())
 
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')

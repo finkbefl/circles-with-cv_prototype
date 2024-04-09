@@ -239,6 +239,43 @@ if __name__ == "__main__":
         # Add the timestamps to to the features DataFrame
         features['timestamp'] = timestamp
 
+        # For Validation and Evaluation Data: Create the target variable
+        # Extract the video index from the video file name and the circles trial
+        [video_idx, trial_idx] = map(int,str(Path(filename).with_suffix('')).split("_"))
+        #video with name 1 is row 0 of metadata
+        video_idx = video_idx -1
+        if metadata.validation[video_idx] == 'yes' or metadata.usage[video_idx] == 'test':
+            # Add a column with False values as preinitialization
+            features['anomaly'] = False
+            # Extract the list of manual detected start- and end-points of anomalies
+            start_anomalies_list = [val.split('-') for val in metadata.manual_anomalie_start_kdenlive][video_idx]
+            end_anomalies_list = [val.split('-') for val in metadata.manual_anomalie_end_kdenlive][video_idx]
+            # Check if there are some anomalies manual detected
+            if len(start_anomalies_list) > 0 and start_anomalies_list[0] != 'n.a.':
+                # Extract the manual detected start- and end-points of the cirles trial of this video
+                start_circles = [val.split('-') for val in metadata.manual_circle_start_kdenlive][video_idx][trial_idx]
+                end_circles = [val.split('-') for val in metadata.manual_circle_end_kdenlive][video_idx][trial_idx]
+                # extract the second and the number of frame, seperated by ':'
+                start_circles_stamp = start_circles.split(':')
+                end_circles_stamp = end_circles.split(':')
+                # calculate the timestamps out of the second and the frame number within this second
+                start_circles_time = (float(start_circles_stamp[0]) + ((1/fps) * int(start_circles_stamp[1]))) * 1000
+                end_circles_time = (float(end_circles_stamp[0]) + ((1/fps) * int(end_circles_stamp[1]))) * 1000
+                # Iterate over the start-points of anomalies
+                for anomaly_idx, start_anomaly_stamp in enumerate(start_anomalies_list):
+                    # extract the second and the number of frame, seperated by ':'
+                    start_anomaly_stamp = start_anomaly_stamp.split(':')
+                    # get the corresponding end-point
+                    end_anomaly_stamp = end_anomalies_list[anomaly_idx].split(':')
+                    # calculate the timestamps out of the second and the frame number within this second
+                    start_anomaly_time = (float(start_anomaly_stamp[0]) + ((1/fps) * int(start_anomaly_stamp[1]))) * 1000
+                    end_anomaly_time = (float(end_anomaly_stamp[0]) + ((1/fps) * int(end_anomaly_stamp[1]))) * 1000
+                    # Is this anomaly within this circle trial video? If not, skip it
+                    if start_anomaly_time < start_circles_time or end_anomaly_time > end_circles_time:
+                        continue
+                    # set the target value to True when anomaly is manually detected
+                    features['anomaly'] = np.where((features['timestamp'] >= float(start_anomaly_time) - float(start_circles_time)) & (features['timestamp'] <= float(end_anomaly_time) - float(start_circles_time)), True, features['anomaly'])
+
         # Visualize the features
         # Create dict for visualization data
         dict_visualization_data = {

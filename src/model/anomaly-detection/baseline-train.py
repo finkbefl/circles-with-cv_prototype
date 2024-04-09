@@ -11,8 +11,10 @@ from pathlib import Path
 import pandas as pd
 # sklearn: SVM Model
 from sklearn import svm
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, ParameterGrid
 from sklearn.preprocessing import StandardScaler
+# sklearn: Metrics
+from sklearn import metrics
 # Numpy
 import numpy as np
 # Serialization of the trained model
@@ -146,15 +148,69 @@ if __name__ == "__main__":
     # Append the figure to the plot
     plot.appendFigure(figure_validation_data.getFigure())
 
+    # Hyperparameter Tuning with ParameterGrid, as GridSearch is not useable with dedicated validation set: But restrict to rbf kernel
     # Using a pipeline: Scale the data and then propagate the data to the model (when segmentation is needed, then we need the sklearn pipeline extension from seglearn, only scaler and model would also be possible wit sklearn pipeline)
+    # For value of gamma: For 'scale' it uses 1 / (n_features * X.var()), for 'auto' 1 / n_features
+    tuning_parameters = [{'kernel': ['rbf'], 'gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'nu': [0.05, 0.1, 0.15, 0.2]}]
+    # Define the ParameterGrid
+    grid = ParameterGrid(tuning_parameters)
+    # Iterate over the tuning parameter
+    # Some variable initializations
+    accuracy_arr = []
+    precision_arr = []
+    recall_arr = []
+    for params in grid:
+        __own_logger.info("Evaluate tuning parameter: %s",params)
+        pipeline = sgl.Pype([
+            ("scaler", StandardScaler()), 
+            ("svc", svm.OneClassSVM(kernel=params['kernel'], gamma=params['gamma'], nu=params['nu']))])
+        #Fit the model using the training sets
+        pipeline.fit(data_training.drop(['missing_data'], axis=1).to_numpy(), [])
+        # Predict anomalies for the validation: Returns -1 for outliers and 1 for inliers.
+        anomalies_pred = (pipeline.predict(data_validation.drop(['missing_data', 'anomaly'], axis=1).to_numpy()) == -1)
+        # Use a copy for evaluation, so that the original validation data is every loop the same
+        data_evaluation = data_validation.copy()
+        data_evaluation['prediction'] = anomalies_pred
+        # Evaluation
+        # Calculate some metrics
+        # Model Accuracy (Percentage of correct predictions): Number of correct predicitons / Number of all predictions
+        # Good when classes are well balanced
+        # Optimizations with regard to this metric means, that as many correct predictions as possible are made without placing a greater emphasis on a particular class
+        accuracy = metrics.accuracy_score(data_evaluation.anomaly, data_evaluation.prediction)
+        __own_logger.info("Accuracy: %s",accuracy)
+        accuracy_arr.append(accuracy)
+        # Model Precision (Ratio of true positives correctly predicted) : Number of predicted true positives / Number of all items matched positive by the algorithm (predicted true positives + predicted false pisitives)
+        # Good if we want to be very sure that the positive prediction is correct
+        # Optimizations with regard to this metric means, that emphasis is placed on ensuring that the positive predictions are actually positive
+        precision = metrics.precision_score(data_evaluation.anomaly, data_evaluation.prediction)
+        __own_logger.info("Precision: %s",precision)
+        precision_arr.append(precision)
+        # Model Recall (how well the model is able to identify positive outcomes): Number of predicted true positives / Number of actual real positives (predicted true positives + predicted false negatives)
+        # Good if we want to identify as many positive results as possible
+        # Optimizations with regard to this metric means, that emphasis is placed on identifying as many actual positives as possible
+        recall = metrics.recall_score(data_evaluation.anomaly, data_evaluation.prediction)
+        __own_logger.info("Recall: %s",recall)
+        recall_arr.append(recall)
+    # Visualize the evaluation criteria values for the params
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ['accuracy', 'precision', 'recall'],
+        "value": [accuracy_arr, precision_arr, recall_arr],
+        "x_data": list(range(1, len(grid) + 1))
+    }
+    # # Create a Line-Circle Chart
+    figure_hyperparam_optimization_eval = figure_time_series_data_as_layers(__own_logger, "Hyperparameter Tuning with ParameterGrid: Metriken", "Wert der Metrik", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "ParameterGrid-Index")
+    # # Append the figure to the plot
+    plot.appendFigure(figure_hyperparam_optimization_eval.getFigure())
+    # Detect the best params: Using precision as criteria
+    best_param_value = max(precision_arr)
+    best_param_index = precision_arr.index(min(precision_arr))
+    __own_logger.info("Evaluation based on precision: Max value %s with param (index %s) %s", best_param_value, best_param_index, grid[best_param_index - 1])
+
+    # Using the best parameters and create a pipeline
     pipeline = sgl.Pype([
-        #("seg", sgl.Segment()), 
-        #("features", sgl.FeatureRep()), 
         ("scaler", StandardScaler()), 
-        # Define the model to be svm.OneClassSVM
-        # For value of gamma: For 'scale' it uses 1 / (n_features * X.var()), for 'auto' 1 / n_features
-        # nu controls the proportion of outliers allowed. For nu=0.1: training samples that are wrongly classified are not allowed to take up more than 10 percent of all training samples. Also, at least 10 percent of the training samples are support vectors. 
-        ("svc", svm.OneClassSVM(kernel='rbf', gamma='auto', nu=0.1))])
+        ("svc", svm.OneClassSVM(kernel=grid[best_param_index - 1]['kernel'], gamma=grid[best_param_index - 1]['gamma'], nu=grid[best_param_index - 1]['nu']))])
 
     #Fit the model using the training sets
     pipeline.fit(data_training.drop(['missing_data'], axis=1).to_numpy(), [])
@@ -194,7 +250,7 @@ if __name__ == "__main__":
         # For missing data at the end, the bfill mechanism not work, so do now a ffill
         data_valid_single = data_valid_single.mask(data_valid_single.missing_data == True, data_valid_single.fillna(method='ffill'))
         # Predict the anomalies: Returns -1 for outliers and 1 for inliers.
-        anomalies_pred_single = (pipeline.predict(data_valid_single.drop(['missing_data'], axis=1).to_numpy()) == -1)
+        anomalies_pred_single = (pipeline.predict(data_valid_single.drop(['missing_data', 'anomaly'], axis=1).to_numpy()) == -1)
         # Merge the data for visualization
         data_visualization = data_valid_single
         data_visualization['anomalies_pred'] = anomalies_pred_single
@@ -218,4 +274,4 @@ if __name__ == "__main__":
 
     # Save the trained model with joblib
     file_path = os.path.join(data_modeling_path, 'baseline-svm-model.joblib')
-    dump(pipeline, file_path) 
+    dump(pipeline, file_path)

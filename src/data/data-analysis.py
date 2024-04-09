@@ -286,6 +286,19 @@ if __name__ == "__main__":
     }
     # Show Line-Circle Chart
     figure_manual_circle_detect_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl manuell detektierter Kreisflankenversuche", "Anzahl detektierter Zeitpunkte", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
+    # manual_anomalie_detection_num_validation
+    # Count number of digits (detected time point in videos) which are seperated by '-' (The "timestamp" of kdenlive consists of the timestamp in seconds, and the number of the frame for this second, seperated by ':')
+    start_count = [(sum(inner.split(':')[0].isdigit() for inner in val.split('-'))) for val in data_collection.manual_anomalie_start_kdenlive]
+    end_count = [(sum(inner.split(':')[0].isdigit() for inner in val.split('-'))) for val in data_collection.manual_anomalie_end_kdenlive]
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": ['manual_anomalie_start_detection_count', 'manual_anomalie_stop_detection_count'],
+        "value": [start_count, end_count],
+        # As x_data take the number of the videos
+        "x_data": ["#{}".format(str(i)) for i in data_collection.video_number]
+    }
+    # Show Line-Circle Chart
+    figure_manual_anomalie_detect_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl manuell detektierter Anomalien (nur Validation- und Test-Set)", "Anzahl detektierter Zeitpunkte", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
 
 
     # Create the plot with the created figures
@@ -305,6 +318,7 @@ if __name__ == "__main__":
     plot.appendFigure(figure_nb_frames_time_series.getFigure())
     plot.appendFigure(figure_bit_rate_time_series.getFigure())
     plot.appendFigure(figure_manual_circle_detect_time_series.getFigure())
+    plot.appendFigure(figure_manual_anomalie_detect_time_series.getFigure())
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
 
