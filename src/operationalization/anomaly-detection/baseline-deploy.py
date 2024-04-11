@@ -286,13 +286,21 @@ if __name__ == "__main__":
         end_index_arr.append(end_index)
     # Iterate over the start-indizes
     for idx, start_index in enumerate(start_index_arr):
-        # If stop_index is None, then only a single frame was affected, which will be ignored
+        # If the index of the loop (of start_index) is not included in the end_index, then the anomalies are up to the end of the video
+        if idx > len(end_index_arr) - 1:
+            # At first, append a dummy end-index: -1
+            end_index_arr.append(-1)
+        # If end_index is None, then only a single frame was affected, which will be ignored
         # TODO: Ignore video-parts with e.g. less then 5 frames?
-        if end_index_arr[idx] is not None:
+        if idx > len(end_index_arr) - 1 or end_index_arr[idx] is not None:
             # Define the start- and end-frame
             # TODO: Use some additional preceding and following frames for visualization?
             start_frame = start_index
             end_frame = end_index_arr[idx]
+            # If the end-index was set to a dummy value -1 because the end of the video is meant, then override this dummy here
+            if end_frame == -1:
+                # The last element of an array is at index -1
+                end_frame = end_index_arr[-1]
             # Set the video's start frame
             cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
             # Read and write frames within the specified timestamps

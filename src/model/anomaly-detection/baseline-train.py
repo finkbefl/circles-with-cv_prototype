@@ -196,16 +196,19 @@ if __name__ == "__main__":
     dict_visualization_data = {
         "label": ['accuracy', 'precision', 'recall'],
         "value": [accuracy_arr, precision_arr, recall_arr],
-        "x_data": list(range(1, len(grid) + 1))
+        "x_data": list(range(0, len(grid)))
     }
     # # Create a Line-Circle Chart
     figure_hyperparam_optimization_eval = figure_time_series_data_as_layers(__own_logger, "Hyperparameter Tuning with ParameterGrid: Metriken", "Wert der Metrik", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "ParameterGrid-Index")
-    # # Append the figure to the plot
-    plot.appendFigure(figure_hyperparam_optimization_eval.getFigure())
     # Detect the best params: Using precision as criteria
     best_param_value = max(precision_arr)
-    best_param_index = precision_arr.index(min(precision_arr))
+    best_param_index = precision_arr.index(max(precision_arr))
     __own_logger.info("Evaluation based on precision: Max value %s with param (index %s) %s", best_param_value, best_param_index, grid[best_param_index - 1])
+    # VIsualize the best params
+    figure_hyperparam_optimization_eval.add_vertical_line(best_param_index, 1.05)
+    figure_hyperparam_optimization_eval.add_annotation(best_param_index, 1.05, "Precision: {}, Index: {}".format(best_param_value, best_param_index))
+    # # Append the figure to the plot
+    plot.appendFigure(figure_hyperparam_optimization_eval.getFigure())
 
     # Using the best parameters and create a pipeline
     pipeline = sgl.Pype([
