@@ -29,7 +29,7 @@ from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar
 #########################################################
 
 # Initialize the logger
-__own_logger = OwnLogging("circles-performance_" + Path(__file__).stem).logger
+__own_logger = OwnLogging("anomaly-detection_" + Path(__file__).stem).logger
 
 #########################################################
 #########################################################
@@ -45,11 +45,11 @@ if __name__ == "__main__":
     file_name = "baseline-eval.html"
     file_title = "Evaluation of the the baseline model"
     __own_logger.info("Plot %s as multiple figures to file %s", file_title, file_name)
-    plot = PlotMultipleFigures(os.path.join("output/circles-performance",file_name), file_title)
+    plot = PlotMultipleFigures(os.path.join("output/anomaly-detection",file_name), file_title)
 
     # Join the filepaths for the data
     data_raw_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "raw")
-    data_modeling_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "modeling", "circles-performance")
+    data_modeling_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "modeling", "anomaly-detection")
 
     __own_logger.info("Path of the raw input data: %s", data_raw_path)
     __own_logger.info("Path of the modeling input data: %s", data_modeling_path)
@@ -100,31 +100,27 @@ if __name__ == "__main__":
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
 
-    # Get the trained svm classifier via joblib
+    # Get the trained anomaly detector via joblib
     file_path = os.path.join(data_modeling_path, 'baseline-svm-model.joblib')
     clf = load(file_path)
 
-    # Predict the target value for the whole test data
-    y_pred = clf.predict(data_test.drop(['amplitude_lack', 'missing_data'], axis=1).to_numpy())
+    # Predict the target value for the whole test data: Returns -1 for outliers and 1 for inliers.
+    y_pred = (clf.predict(data_test.drop(['missing_data', 'anomaly'], axis=1).to_numpy()) == -1)
     data_test['prediction'] = y_pred
-    # add False (circles not running) for rows with missing data?
-    # data_test['prediction'] = np.where(data_test.missing_data, 0, y_pred)
-    # A better approch is to check, if there is a change in the prediction-value at the points of missing_data, if so, use the value before to avoid the change
-    __own_logger.info("Number of changes in prediction before correction regarding missing_data: %d", len(data_test.prediction[data_test.prediction.diff().replace(np.nan, 0) != 0]))
-    data_test.prediction = np.where(data_test.missing_data & data_test.prediction.diff().replace(np.nan, 0) != 0, data_test.prediction.fillna(method='ffill'), data_test.prediction)
-    __own_logger.info("Number of changes in prediction after correction regarding missing_data: %d", len(data_test.prediction[data_test.prediction.diff().replace(np.nan, 0) != 0]))
-
+    # add False (no anomaly) for rows with missing data
+    __own_logger.info("Number of missing_data, for which the anomaly is set to false: %d", data_test.missing_data.sum())
+    data_test['prediction'] = np.where(data_test.missing_data, False, y_pred)
 
     # Visualize the prediction for the test data input
     # Create dict for visualization data
     dict_visualization_data = {
-        "label": [data_test.missing_data.name, data_test.amplitude_lack.name, data_test.prediction.name],
-        "value": [data_test.missing_data.values, data_test.amplitude_lack.values, data_test.prediction.values],
+        "label": data_test.columns.values, # Take all columns for visualization in dataframe
+        "value": [data_test[data_test.columns.values][col] for col in data_test[data_test.columns.values]],
         # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
         "x_data": data_test.index + 1
     }
     # Create a Line-Circle Chart
-    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Kreisflanken", "Kreisflanken detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Anomalien", "Anomalien detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
 
@@ -155,14 +151,23 @@ if __name__ == "__main__":
         data_test_single = data_test_single.mask(data_test_single.missing_data == True, data_test_single.fillna(method='bfill'))
         # For missing data at the end, the bfill mechanism not work, so do now a ffill
         data_test_single = data_test_single.mask(data_test_single.missing_data == True, data_test_single.fillna(method='ffill'))
-        # Predict the target value for the whole test data
-        y_pred_single = clf.predict(data_test_single.drop(['amplitude_lack', 'missing_data'], axis=1).to_numpy())
+        # Predict the target value for the whole test data: Returns -1 for outliers and 1 for inliers.
+        y_pred_single = (clf.predict(data_test_single.drop(['missing_data', 'anomaly'], axis=1).to_numpy()) == -1)
         # Add prediciton to test data
         data_test_single['prediction'] = y_pred_single
+        # add False (no anomaly) for rows with missing data
+        __own_logger.info("Number of missing_data, for which the anomaly is set to false: %d", data_test_single.missing_data.sum())
+        data_test_single['prediction'] = np.where(data_test_single.missing_data, False, y_pred_single)
         # Save to CSV
         save_data(data_test_single, data_modeling_path, "{0}_{1}.csv".format('data_test',video_name_num))
+        # Create dict for visualization data
+        dict_visualization_data = {
+            "label": data_test_single.columns.values, # Take all columns for visualization in dataframe
+            "value": [data_test_single[data_test_single.columns.values][col] for col in data_test_single[data_test_single.columns.values]],
+            "x_data": list(range(1, y_pred_single.size + 1))
+        }
         # Create a Line-Circle Chart
-        figure_test_data_single = figure_time_series_data_as_layers(__own_logger, "Testdaten Video {}: Vorhersage der Kreisflanken".format(video_name_num), "Kreisflanken detektiert", list(range(1, y_pred_single.size + 1)), dict_visualization_data.get('label'), [data_test_single.missing_data, data_test_single.amplitude_lack, y_pred_single], "Frame")
+        figure_test_data_single = figure_time_series_data_as_layers(__own_logger, "Testdaten Video {}: Vorhersage der Anomalien".format(video_name_num), "Anomalien detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
         # Append the figure to the plot
         plot.appendFigure(figure_test_data_single.getFigure())
 
@@ -175,19 +180,19 @@ if __name__ == "__main__":
     # Model Accuracy (Percentage of correct predictions): Number of correct predicitons / Number of all predictions
     # Good when classes are well balanced
     # Optimizations with regard to this metric means, that as many correct predictions as possible are made without placing a greater emphasis on a particular class
-    accuracy = metrics.accuracy_score(data_test.amplitude_lack, data_test.prediction)
+    accuracy = metrics.accuracy_score(data_test.anomaly, data_test.prediction)
     __own_logger.info("Accuracy: %s",accuracy)
 
     # Model Precision (Ratio of true positives correctly predicted) : Number of predicted true positives / Number of all items matched positive by the algorithm (predicted true positives + predicted false pisitives)
     # Good if we want to be very sure that the positive prediction is correct
     # Optimizations with regard to this metric means, that emphasis is placed on ensuring that the positive predictions are actually positive
-    precision = metrics.precision_score(data_test.amplitude_lack, data_test.prediction)
+    precision = metrics.precision_score(data_test.anomaly, data_test.prediction)
     __own_logger.info("Precision: %s",precision)
 
     # Model Recall (how well the model is able to identify positive outcomes): Number of predicted true positives / Number of actual real positives (predicted true positives + predicted false negatives)
     # Good if we want to identify as many positive results as possible
     # Optimizations with regard to this metric means, that emphasis is placed on identifying as many actual positives as possible
-    recall = metrics.recall_score(data_test.amplitude_lack, data_test.prediction)
+    recall = metrics.recall_score(data_test.anomaly, data_test.prediction)
     __own_logger.info("Recall: %s",recall)
 
     # Visualize the metrics
@@ -213,18 +218,16 @@ if __name__ == "__main__":
         # Get the data related to the specific video
         data_specific_video = load_data(data_modeling_path, eval_data_file_name)
         # Calc the metrics
-        accuracy = metrics.accuracy_score(data_specific_video.amplitude_lack, data_specific_video.prediction)
+        accuracy = metrics.accuracy_score(data_specific_video.anomaly, data_specific_video.prediction)
         __own_logger.info("Testdaten Video %d: Accuracy: %s",video_name_num, accuracy)
-        precision = metrics.precision_score(data_specific_video.amplitude_lack, data_specific_video.prediction)
+        precision = metrics.precision_score(data_specific_video.anomaly, data_specific_video.prediction)
         __own_logger.info("Testdaten Video %d: Precision: %s",video_name_num, precision)
-        recall = metrics.recall_score(data_specific_video.amplitude_lack, data_specific_video.prediction)
+        recall = metrics.recall_score(data_specific_video.anomaly, data_specific_video.prediction)
         __own_logger.info("Testdaten Video %d: Recall: %s",video_name_num, recall)
         # Create a bar chart
         figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall], set_x_range=True, color_sequencing=False)
         # Append the figure to the plot
         plot.appendFigure(figure_evaluation_single.getFigure())
-
-
 
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
