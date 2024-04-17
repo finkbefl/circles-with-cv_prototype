@@ -445,7 +445,7 @@ class PlotMultipleFigures(PlotBokeh):
 
 #########################################################
 
-def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True, color_sequencing=True):
+def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True, color_sequencing=True, width=0.8):
     """
     Function to create a vbar chart figure
     ----------
@@ -464,6 +464,8 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
             set the x_data as range of the x-axis (for categorical data)
         color_sequencing : boolean
             A flag, whether every bar sould be drawn in another color with the known color sequence
+        width : numbers.Real
+                The width of the bar
     ----------
     Returns:
         The bokeh class
@@ -477,7 +479,7 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
         # Dont set the x_range
         else:
             figure = PlotMultipleLayers(figure_title, None, y_label, x_range=None)
-        figure.addVBarLayer(x_data, y_data, color_sequencing=color_sequencing)
+        figure.addVBarLayer(x_data, y_data, color_sequencing=color_sequencing, width=width)
         return figure
     except TypeError as error:
         logger.error("########## Error when trying to create figure ##########", exc_info=error)
@@ -504,6 +506,8 @@ def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data,
             The y data to plot
         set_x_range : boolean
             set the x_data as range of the x-axis (for categorical data)
+        width : numbers.Real
+                The width of the bar
         
     ----------
     Returns:

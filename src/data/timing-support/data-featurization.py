@@ -215,9 +215,14 @@ if __name__ == "__main__":
                 # Label the data row with "missing data"
                 missing_data.append(True)
 
-
+            # # Naming a window
+            # window_name = "Data Featurization"
+            # # cv2.WINDOW_NORMAL makes the output window resizealbe
+            # cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+            # # Show it in fullscreen
+            # cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
             # # Display the frame
-            # cv2.imshow(f'Data Featurization', frame)
+            # cv2.imshow(window_name, frame)
 
             # # Press 'q' to quit
             # key = cv2.waitKey(0 ) & 0xFF
