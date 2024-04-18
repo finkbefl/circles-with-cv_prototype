@@ -382,15 +382,24 @@ if __name__ == "__main__":
     # Iterate over the detected local minima and set the colunm to True
     for local_min_index in local_min_indices_right_wrist[0]:
         data_video_to_analyze[time_serie_to_analyze + '_local_minima'] = np.where((data_video_to_analyze.index == data_video_to_analyze.index[local_min_index]), True, data_video_to_analyze[time_serie_to_analyze + '_local_minima'])
+    # Show the local minima from right_foot_x_pos to get phase shift?
+    time_serie_to_analyze_to_compare = 'right_foot_x_pos'
+    # Calc the indices of the local minima
+    local_min_indices_right_foot = argrelmin(data_video_to_analyze[time_serie_to_analyze_to_compare].values, order=int(period_num/2))
+    # Create a time series which represents the local minima: Add a column with False values as preinitialization
+    data_video_to_analyze[time_serie_to_analyze_to_compare + '_local_minima'] = False
+    # Iterate over the detected local minima and set the colunm to True
+    for local_min_index in local_min_indices_right_foot[0]:
+        data_video_to_analyze[time_serie_to_analyze_to_compare + '_local_minima'] = np.where((data_video_to_analyze.index == data_video_to_analyze.index[local_min_index]), True, data_video_to_analyze[time_serie_to_analyze_to_compare + '_local_minima'])
     # Visualize the local minima
     # Create dict for visualization data
     dict_visualization_data = {
-        "label": [time_serie_to_analyze, time_serie_to_analyze + '_local_minima'],
-        "value": [data_video_to_analyze[time_serie_to_analyze], data_video_to_analyze[time_serie_to_analyze + '_local_minima']],
+        "label": [time_serie_to_analyze, time_serie_to_analyze + '_local_minima', time_serie_to_analyze_to_compare, time_serie_to_analyze_to_compare + '_local_minima'],
+        "value": [data_video_to_analyze[time_serie_to_analyze], data_video_to_analyze[time_serie_to_analyze + '_local_minima'], data_video_to_analyze[time_serie_to_analyze_to_compare], data_video_to_analyze[time_serie_to_analyze_to_compare + '_local_minima']],
         "x_data": data_video_to_analyze.index
     }
     # Create a Line-Circle Chart
-    figure_analyze_data_local_minima = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Zeitpunkte des Kontakts zum Turnpilz (Lokale Minima von {})".format(time_serie_to_analyze), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+    figure_analyze_data_local_minima = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Zeitpunkte der Lokale Minima von {} und {}".format(time_serie_to_analyze, time_serie_to_analyze_to_compare), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_data_local_minima.getFigure())
 
