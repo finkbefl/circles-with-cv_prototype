@@ -217,7 +217,7 @@ if __name__ == "__main__":
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_data_spectrum_all.getFigure())
 
-    # Analyze the time series which are stationary, iterate over the available sprectrums
+    # Analyze the time series iterate over the available sprectrums
     max_freq_arr = []
     max_ampl_arr = []
     max_freq_foot_arr = []
@@ -299,6 +299,29 @@ if __name__ == "__main__":
     figure_analyze_frequencies.add_annotation(max_freq_wrist, max_ampl_wrist *1.05, 'Max Ampl. Hände')
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_frequencies.getFigure())
+
+    # Extract timing information with detecting local minima: Analyze right foot x pos and right wrist y pos
+    time_serie_to_analyze = ['right_foot_x_pos', 'right_wrist_y_pos']
+    for columnname in time_serie_to_analyze:
+        # Calc the indices of the local minima
+        local_min_indices = argrelmin(data_video_to_analyze[columnname].values, order=int(period_num/2))
+        # Create a time series which represents the local minima: Add a column with False values as preinitialization
+        data_video_to_analyze[columnname + '_local_minima'] = False
+        # Iterate over the detected local minima and set the colunm to True
+        for local_min_index in local_min_indices[0]:
+            data_video_to_analyze[columnname + '_local_minima'] = np.where((data_video_to_analyze.index == data_video_to_analyze.index[local_min_index]), True, data_video_to_analyze[columnname + '_local_minima'])
+
+    # Visualize the local minima
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": [time_serie_to_analyze[0], time_serie_to_analyze[0] + '_local_minima', time_serie_to_analyze[1], time_serie_to_analyze[1] + '_local_minima'],
+        "value": [data_video_to_analyze[time_serie_to_analyze[0]], data_video_to_analyze[time_serie_to_analyze[0] + '_local_minima'], data_video_to_analyze[time_serie_to_analyze[1]], data_video_to_analyze[time_serie_to_analyze[1] + '_local_minima']],
+        "x_data": data_video_to_analyze.index
+    }
+    # Create a Line-Circle Chart
+    figure_analyze_data_local_minima = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Zeitpunkte der Lokalen Minima von {} und {}".format(time_serie_to_analyze[0], time_serie_to_analyze[1]), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+    # Append the figure to the plot
+    plot.appendFigure(figure_analyze_data_local_minima.getFigure())
 
     # Now, analyze all videos, but with less visualization
 

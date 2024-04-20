@@ -458,6 +458,34 @@ if __name__ == "__main__":
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_frequencies.getFigure())
 
+    # Extract timing information with detecting local minima: Analyze foot and wrist pos with the max spectrum amplitude
+    time_serie_to_analyze = [max_name_foot_array[idxmax_foot], max_name_wrist_array[idxmax_wrist]]
+    for columnname in time_serie_to_analyze:
+        # Get the period number extracted with the spectrum
+        index = data.drop('missing_data', axis=1).columns.get_loc(columnname)
+        idxmax = power_spectrum_arr[index].idxmax()
+        max_freq = frequencies_arr[index][idxmax]
+        period_s = 1/max_freq
+        period_num = period_s * sampling_frequency
+        # Calc the indices of the local minima
+        local_min_indices = argrelmin(data[columnname].values, order=int(period_num/2))
+        # Create a time series which represents the local minima: Add a column with False values as preinitialization
+        data[columnname + '_local_minima'] = False
+        # Iterate over the detected local minima and set the colunm to True
+        for local_min_index in local_min_indices[0]:
+            data[columnname + '_local_minima'] = np.where((data.index == data.index[local_min_index]), True, data[columnname + '_local_minima'])
+    # Visualize the local minima
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": [time_serie_to_analyze[0], time_serie_to_analyze[0] + '_local_minima', time_serie_to_analyze[1], time_serie_to_analyze[1] + '_local_minima'],
+        "value": [data[time_serie_to_analyze[0]], data[time_serie_to_analyze[0] + '_local_minima'], data[time_serie_to_analyze[1]], data[time_serie_to_analyze[1] + '_local_minima']],
+        "x_data": data.index
+    }
+    # Create a Line-Circle Chart
+    figure_analyze_data_local_minima = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos: Zeitpunkte der Lokalen Minima von {} und {}".format(time_serie_to_analyze[0], time_serie_to_analyze[1]), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+    # Append the figure to the plot
+    plot.appendFigure(figure_analyze_data_local_minima.getFigure())
+
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
 
