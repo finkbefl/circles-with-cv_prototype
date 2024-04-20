@@ -29,6 +29,10 @@ from fractions import Fraction
 from scipy import signal
 # Using statsmodel for detecting stationarity
 from statsmodels.tsa.stattools import adfuller, kpss
+# Detection of relative minima of data
+from scipy.signal import argrelmin
+# For playing sound
+import simpleaudio as sa
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
@@ -36,7 +40,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 # To handle the Logging for all modules in the same way
 from utils.own_logging import OwnLogging, log_overview_data_frame
 # To handle csv files
-from utils.csv_operations import load_data,  save_data
+from utils.csv_operations import load_data, save_data, convert_series_into_date
 # To plot data with bokeh
 from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar, figure_hist, figure_hist_as_layers, figure_time_series_data_as_layers, figure_vbar_as_layers
 
@@ -110,7 +114,7 @@ def get_spectrum(input_signal, sampling_frequency):
     input_signal_copy -= input_signal_copy.mean()  
     
     # Estimate power spectral density using a periodogram.
-    frequencies , power_spectrum = signal.periodogram(input_signal_copy, sampling_frequency, scaling='spectrum')
+    frequencies , power_spectrum = signal.periodogram(input_signal_copy, sampling_frequency, scaling='spectrum', nfft=512)
 
     return pd.Series(power_spectrum), frequencies
 
@@ -137,9 +141,9 @@ if __name__ == "__main__":
     __own_logger.info("Path of the modeling input data: %s", data_modeling_path)
 
     # Join the filepath of the raw data file
-    file_input_path = os.path.join(deployment_video_path, "deployment_fromSide.mov")
-    #file_input_path = os.path.join(deployment_video_path, "deployment_fromTop.mp4")
-    #file_input_path = os.path.join(deployment_video_path, "deployment_fromSide_otherDirection.MOV")
+    #file_input_path = os.path.join(deployment_video_path, "deployment_fromSide.mov")
+    file_input_path = os.path.join(deployment_video_path, "deployment_fromSide_Trial1.mp4")
+    #file_input_path = os.path.join(deployment_video_path, "deployment_fromSide_Trial2.mp4")
     __own_logger.info("Input video: %s", file_input_path)
 
     # Initialize MediaPipe Pose and Drawing utilities
@@ -179,6 +183,7 @@ if __name__ == "__main__":
     left_wrist_x_pos_arr = []
     left_wrist_y_pos_arr = []
     missing_data_arr = []
+    timestamp = []
     # Start time of video processing 
     start_time_video_processing = time.time()
     while cap.isOpened():
@@ -202,7 +207,7 @@ if __name__ == "__main__":
             #__own_logger.info("Landmarks detected")
 
             # Draw the relevant pose landmarks on the frame
-            # mp_drawing.draw_landmarks(frame, result.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+            #mp_drawing.draw_landmarks(frame, result.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
             # Extract footpositions (normalized to the width and the heigth of the image)
             right_foot_x_pos = result.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_FOOT_INDEX].x
@@ -226,6 +231,8 @@ if __name__ == "__main__":
             left_wrist_y_pos_arr.append(left_wrist_y_pos)
             # Label the data row with "no missing data"
             missing_data_arr.append(False)
+            # Save timestamp of frame (in milli seconds)
+            timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
 
             # # Bigger size of the image for better visualization
             # frame = cv2.resize(frame, (1920,1080), interpolation=cv2.INTER_CUBIC)
@@ -247,35 +254,37 @@ if __name__ == "__main__":
             left_wrist_y_pos_arr.append(np.NaN)
             # Label the data row with "missing data"
             missing_data_arr.append(True)
+            # But the timestamp can be set correctly
+            timestamp.append(cap.get(cv2.CAP_PROP_POS_MSEC))
 
-        # # Naming a window
-        # window_name = "Timing Support"
-        # # cv2.WINDOW_NORMAL makes the output window resizealbe
-        # cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-        # # Show it in fullscreen
-        # cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        # Naming a window
+        window_name = "Timing Support"
+        # cv2.WINDOW_NORMAL makes the output window resizealbe
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        # Show it in fullscreen
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-        # # Add some text
-        # cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
-        # cv2.putText(frame,"Anomaly:",(1500,80),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+        # Add some text
+        cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
 
-        # # Get the frame rate of the source video
-        # fps =  cap.get(cv2.CAP_PROP_FPS)
-        # cv2.putText(frame,f'Framerate (source): {fps:.1f} FPS',(0,1000),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)
-        # # Put calculated frame rate for the generated video as text in image
-        # cv2.putText(frame,f'Framerate (generated): {framerate:.1f} FPS',(0,1040),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)   
+        # Get the frame rate of the source video
+        fps =  cap.get(cv2.CAP_PROP_FPS)
+        cv2.putText(frame,f'Framerate (source): {fps:.1f} FPS',(0,1000),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)
+        # Put calculated frame rate for the generated video as text in image
+        cv2.putText(frame,f'Framerate (generated): {framerate:.1f} FPS',(0,1040),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)   
 
-        # # Display the frame
-        # cv2.imshow(window_name, frame)
+        # Display the frame
+        cv2.imshow(window_name, frame)
 
-        # # Press 'q' to quit
+        key = cv2.waitKey(1)
+        # Press 'q' to quit
         # key = cv2.waitKey(0 ) & 0xFF
-        # # if the `q` key was pressed, break from the loop
-        # if key == ord('q'):
-        #     break
+        # if the `q` key was pressed, break from the loop
+        if key == ord('q'):
+            break
 
-        # # Calculate the frame rate of the generated video via showing the frames
-        # framerate = 1.0 / (time.time() - start_time)
+        # Calculate the frame rate of the generated video via showing the frames
+        framerate = 1.0 / (time.time() - start_time)
             
     # Print the information how long the processing tooks
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -295,6 +304,9 @@ if __name__ == "__main__":
     data['left_wrist_x_pos'] = left_wrist_x_pos_arr
     data['left_wrist_y_pos'] = left_wrist_y_pos_arr
 
+    # Convert the timestamps (in ms) into DateTime (raise an exception when parsing is invalid) and set it as index
+    data = data.set_index(convert_series_into_date(timestamp, unit='ms'))
+
     # Handling missing data (frames with no detected landmarks)
     __own_logger.info("Data of Pose Detection: Detected missing data: %s", data.isna().sum())
     # Backward filling (take the next observation and fill backward) for rows which where initially labeled as missing-data
@@ -308,10 +320,10 @@ if __name__ == "__main__":
         "label": data.columns.values, # Take all columns for visualization in dataframe
         "value": [data[data.columns.values][col] for col in data[data.columns.values]],
         # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
-        "x_data": data.index + 1
+        "x_data": data.index
     }
     # Create a Line-Circle Chart
-    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Daten: Positionen der Füße", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Daten: Positionen der Füße", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
 
@@ -322,9 +334,12 @@ if __name__ == "__main__":
     stationarity_results = stationarity_test(df_stationary_data)
     # Are the columns strict stationary?
     for column in stationarity_results:
-        __own_logger.info("Training Data: Stationarity: Column %s is stationary: %s", column, stationarity_results[column])
-        if stationarity_results[column].values() == False:
-            sys.exit('The data is not strict stationary! Fix it!')
+        __own_logger.info("Data Analysis: Stationarity: Column %s is stationary: %s", column, stationarity_results[column])
+        for value in stationarity_results[column].values():
+            if value == False:
+                #sys.exit('The data {} is not strict stationary! Fix it!'.format(column))
+                __own_logger.info("Data Analysis: Column %s is not stationary!", column)
+
 
     # Get the frequency of the data: Calculate Spectrum (squared magnitude spectrum via fft)
     # At first get the sampling frequency of the video, with the help of the frame rate from video metadata
@@ -337,30 +352,111 @@ if __name__ == "__main__":
     metadata_video = metadata_streams[metadata_streams.codec_type == 'video']
 
     # Get the frequency of the data: Calculate Spectrum (squared magnitude spectrum via fft)
-    _power_spectrum_1, frequencies_1 = get_spectrum(data.right_wrist_y_pos, sampling_frequency)
-    _power_spectrum_2, frequencies_2 = get_spectrum(data.left_wrist_y_pos, sampling_frequency)
-    _power_spectrum_3, frequencies_3 = get_spectrum(data.right_foot_x_pos, sampling_frequency)
-    _power_spectrum_4, frequencies_4 = get_spectrum(data.right_foot_y_pos, sampling_frequency)
-    _power_spectrum_5, frequencies_5 = get_spectrum(data.left_foot_x_pos, sampling_frequency)
-    _power_spectrum_6, frequencies_6 = get_spectrum(data.left_foot_y_pos, sampling_frequency)
+    power_spectrum_arr = []
+    frequencies_arr = []
+    for column in data.drop('missing_data', axis=1).columns:  
+        power_spectrum, frequencies = get_spectrum(data[column], sampling_frequency)
+        power_spectrum_arr.append(power_spectrum)
+        frequencies_arr.append(frequencies)
     # Check for same frequencies in all spectrum of the different signals
-    frequencies = [frequencies_1, frequencies_2, frequencies_3, frequencies_4, frequencies_5, frequencies_6]
-    if not all([np.array_equal(a, b) for a, b in zip(frequencies, frequencies[1:])]):
+    if not all([np.array_equal(a, b) for a, b in zip(frequencies_arr, frequencies_arr[1:])]):
         raise ValueError("The freqeuncies of the spectrums are not equal!")
     # Visualize all the spectrums
     # Create dict for visualization data
     dict_visualization_data = {
-        "layer": ['right_wrist_y_pos', 'left_wrist_y_pos', 'right_foot_x_pos', 'right_foot_y_pos', 'left_foot_x_pos', 'left_foot_y_pos'],
-        #"label": [_power_spectrum_1.index, _power_spectrum_2.index, _power_spectrum_3.index, _power_spectrum_4.index, _power_spectrum_5.index, _power_spectrum_6.index],
-        "label": [frequencies_1, frequencies_2, frequencies_3, frequencies_4, frequencies_5, frequencies_6],
-        "value": [_power_spectrum_1, _power_spectrum_2, _power_spectrum_3, _power_spectrum_4, _power_spectrum_5, _power_spectrum_6],
+        "layer": data.drop('missing_data', axis=1).columns,
+        "label": frequencies_arr,
+        "value": power_spectrum_arr,
     }
     # Create a histogram: Frequency domain
     #figure_analyze_data_spectrum = figure_hist_as_layers(__own_logger, "Amplitudenspektrum", "Frequenz [Hz]", "Betrag im Quadrat des 2D-Fourier-Spektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
     # Workaround: Realize it with vbar chart, as histogram is working with edges, but frequency are direct values, no edges
-    figure_analyze_data_spectrum_all = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos: Amplitudenspektrum", "Betrag im Quadrat des 2D-Fourier-Spektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05)
+    figure_analyze_data_spectrum_all = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos: Amplitudenspektrum", "Betrag im Quadrat des 2D-Fourier-Spektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05, x_label="Frequenz [Hz]")
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_data_spectrum_all.getFigure())
+
+    # Analyze the time series which are stationary, iterate over the available sprectrums
+    max_freq_arr = []
+    max_ampl_arr = []
+    max_freq_foot_arr = []
+    max_ampl_foot_arr = []
+    max_name_foot_array = []
+    max_freq_wrist_arr = []
+    max_ampl_wrist_arr = []
+    max_name_wrist_array = []
+    for index, spectrum in enumerate(power_spectrum_arr):
+        time_serie_to_analyze = data.drop('missing_data', axis=1).columns[index]
+        # Visualize the distribution
+        # Get distribution of values
+        hist, bin_edges = np.histogram(data[time_serie_to_analyze], density=False, bins=100, range=(0,1))
+        # Create the histogram
+        figure_analyze_data_distribution = figure_hist(__own_logger, "Datenanalyse des Videos: Häufigkeitsverteilung von {}".format(time_serie_to_analyze), "Position normiert auf die Breite bzw. Höhe des Bildes", "Anzahl Frames", bin_edges, hist)
+        # Append the figure to the plot
+        plot.appendFigure(figure_analyze_data_distribution.getFigure())
+        # Visualize the spectrum
+        spectrum_to_analyze = spectrum
+        frequencies_to_analyze = frequencies_arr[index]
+        # Create a histogram: Frequency domain
+        # Workaround: Realize it with vbar chart, as histogram is working with edges, but frequency are direct values, no edges
+        figure_analyze_data_spectrum = figure_vbar(__own_logger, "Datenanalyse des Videos: Amplitudenspektrum von {}".format(time_serie_to_analyze), "Betrag im Quadrat des 2D-Fourier-Spektrums", frequencies_to_analyze, spectrum_to_analyze, set_x_range=False, color_sequencing=False, width=0.05, x_label="Frequenz [Hz]")
+        # Get index with max value of spectrum amplitude
+        idxmax = spectrum_to_analyze.idxmax()
+        max_freq = frequencies_to_analyze[idxmax]
+        max_freq_arr.append(max_freq)
+        # Get the max value for this index 
+        max = spectrum_to_analyze[idxmax]
+        max_ampl_arr.append(max)
+        if 'foot' in time_serie_to_analyze:
+            # The time series is from foot
+            max_name_foot_array.append(time_serie_to_analyze)
+            max_ampl_foot_arr.append(max)
+            max_freq_foot_arr.append(max_freq)
+        elif 'wrist' in time_serie_to_analyze:
+            # The time series is from wrist
+            max_name_wrist_array.append(time_serie_to_analyze)
+            max_ampl_wrist_arr.append(max)
+            max_freq_wrist_arr.append(max_freq)
+        # Get the frequency with the max spectrum amplitude
+        __own_logger.info("Data Analysis %s: Max spectrum amplitude %s at frequency of the time series: %s Hz", time_serie_to_analyze, max, max_freq)
+        # Add line to visualize the freq
+        figure_analyze_data_spectrum.add_vertical_line(max_freq, max*1.05)
+        figure_analyze_data_spectrum.add_annotation(max_freq, max *1.05, '{:.4f} Hz'.format(max_freq))
+        # Append the figure to the plot
+        plot.appendFigure(figure_analyze_data_spectrum.getFigure())
+        # At first calc the period of the periodic part in number of frames
+        period_s = 1/max_freq
+        period_num = period_s * sampling_frequency
+        __own_logger.info("Data Analysis %s: Period of the time series: %s s ; %s number of frames", time_serie_to_analyze, period_s, period_num)
+
+    # Get the freq with the max amplitude from the spectrum
+    idxmax = np.argmax(max_ampl_arr)
+    max_freq = max_freq_arr[idxmax]
+    max_ampl = max_ampl_arr[idxmax]
+    __own_logger.info("Data Analysis: Max spectrum amplitude %s at frequency of the time series: %s Hz", max_ampl, max_freq)
+    # Get the freq with the max amplitude from the spectrum, sperated by foot and wrist
+    idxmax_foot = np.argmax(max_ampl_foot_arr)
+    max_freq_foot = max_freq_foot_arr[idxmax_foot]
+    max_ampl_foot = max_ampl_foot_arr[idxmax_foot]
+    idxmax_wrist = np.argmax(max_ampl_wrist_arr)
+    max_freq_wrist = max_freq_wrist_arr[idxmax_wrist]
+    max_ampl_wrist= max_ampl_wrist_arr[idxmax_wrist]
+    __own_logger.info("Data Analysis: Max spectrum amplitude for foots %s at frequency of the time series: %s Hz", max_ampl_foot, max_freq_foot)
+    __own_logger.info("Data Analysis: Max spectrum amplitude for wrists %s at frequency of the time series: %s Hz", max_ampl_wrist, max_freq_wrist)
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "layer": data.drop('missing_data', axis=1).columns,
+        "label": max_freq_arr,
+        "value": max_ampl_arr,
+    }
+    # Create a bar chart
+    figure_analyze_frequencies = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos: Maximale Amplituden der Spektren", "Betrag im Quadrat des 2D-Fourier-Spektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05, x_label="Frequenz [Hz]")
+    # Add line to visualize the max freqs seperated by foots and wrists
+    figure_analyze_frequencies.add_vertical_line(max_freq_foot, max_ampl_foot*1.05)
+    figure_analyze_frequencies.add_annotation(max_freq_foot, max_ampl_foot *1.05, 'Max Ampl. Füße')
+    figure_analyze_frequencies.add_vertical_line(max_freq_wrist, max_ampl_wrist*1.05)
+    figure_analyze_frequencies.add_annotation(max_freq_wrist, max_ampl_wrist *1.05, 'Max Ampl. Hände')
+    # Append the figure to the plot
+    plot.appendFigure(figure_analyze_frequencies.getFigure())
 
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
@@ -368,3 +464,28 @@ if __name__ == "__main__":
     # Release everything if job is finished
     cap.release()
     cv2.destroyAllWindows()
+
+    # Play beep in the half frequency of the foot as timing support for the hands!
+    sound_frequency = 440  # The sound will be a 440 Hz beep
+    sound_fs = 44100  # 44100 samples per second
+    sound_duration_seconds = 0.1  # Duration of 100ms
+    # Generate array with seconds*sample_rate steps, ranging between 0 and seconds
+    t = np.linspace(0, sound_duration_seconds, int(sound_duration_seconds * sound_fs), False)
+    # Generate a 440 Hz sine wave
+    note = np.sin(sound_frequency * t * 2 * np.pi)
+    # Ensure that highest value is in 16-bit range
+    audio = note * (2**15 - 1) / np.max(np.abs(note))
+    # Convert to 16-bit data
+    audio = audio.astype(np.int16)
+    try:
+        while True:
+            start_time = time.time()
+            print("Playing beep with frequency of {}/2 Hz as (both) hands timing support. Press 'Ctrl+C' to quit...".format(max_freq_foot))
+            # Start playback
+            play_obj = sa.play_buffer(audio, 1, 2, sound_fs)
+            # Wait for playback to finish before exiting
+            play_obj.wait_done()
+            # Sleep the time of the rest of the period (but hald of the frequency of the foot because we habe 2 hands!)
+            time.sleep((1/max_freq_foot) / 2 - (time.time()-start_time) )
+    except KeyboardInterrupt:
+        print('\n Stopped the beep by the user')

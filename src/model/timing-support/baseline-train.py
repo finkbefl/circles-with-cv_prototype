@@ -181,20 +181,25 @@ if __name__ == "__main__":
     plot.appendFigure(figure_training_data.getFigure())
 
     # Time Series Stationarity
+    data_stationarity = True
     # Copy the data for stationary data
     df_stationary_data = data_training.copy()
     # Test the columns for stationarity
     stationarity_results = stationarity_test(df_stationary_data)
     # Are the columns strict stationary?
     for column in stationarity_results:
-        __own_logger.info("Training Data: Stationarity: Column %s is stationary: %s", column, stationarity_results[column])
-        if stationarity_results[column].values() == False:
-            sys.exit('The data is not strict stationary! Fix it!')      
+        __own_logger.info("Data Analysis: Stationarity: Column %s is stationary: %s", column, stationarity_results[column])
+        for value in stationarity_results[column].values():
+            if value == False:
+                data_stationarity = False
+                break
+        if not data_stationarity:
+            break
 
     #Train the model using the training set
     model = pm.auto_arima(data_training.right_wrist_y_pos.to_numpy(), data_training.drop(['right_wrist_y_pos', 'left_wrist_y_pos', 'missing_data'], axis=1).to_numpy(), 
                           seasonal=False,   # TODO
-                          stationary=True, 
+                          stationary=data_stationarity, 
                           test='kpss', stepwise=True, 
                           trace=True)
 

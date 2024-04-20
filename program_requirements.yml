@@ -146,9 +146,10 @@ dependencies:
       - flatbuffers==23.5.26
       - mediapipe==0.10.9
       - opencv-contrib-python==4.9.0.80
-      - opencv-python==4.1.2.30
+      - opencv-python==4.9.0.80
       - pillow==10.2.0
       - protobuf==3.20.3
       - seglearn==1.2.5
+      - simpleaudio==1.0.4
       - sounddevice==0.4.6
 prefix: /home/florian/miniconda3/envs/circles-with-cv

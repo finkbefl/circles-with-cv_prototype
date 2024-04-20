@@ -445,7 +445,7 @@ class PlotMultipleFigures(PlotBokeh):
 
 #########################################################
 
-def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True, color_sequencing=True, width=0.8):
+def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True, color_sequencing=True, x_label=None, width=0.8):
     """
     Function to create a vbar chart figure
     ----------
@@ -454,6 +454,8 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
             The Logger to log with
         figure_title : str
             The title of the figure
+        x_label : str
+            The label of the x axis
         y_label : str
             The label of the y axis
         x_data : numbers.Real
@@ -475,10 +477,10 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
         logger.info("Figure for vbar chart: %s", figure_title)
         # Set the x_data as x_range (for categorical data)?
         if set_x_range:
-            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=x_data)
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=x_data)
         # Dont set the x_range
         else:
-            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=None)
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=None)
         figure.addVBarLayer(x_data, y_data, color_sequencing=color_sequencing, width=width)
         return figure
     except TypeError as error:
@@ -487,7 +489,7 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
 
 #########################################################
 
-def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data, set_x_range=True, width=0.8):
+def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data, set_x_range=True, x_label=None, width=0.8):
     """
     Function to create a vbar chart figure
     ----------
@@ -496,6 +498,8 @@ def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data,
             The Logger to log with
         figure_title : str
             The title of the figure
+        x_label : str
+            The label of the x axis
         y_label : str
             The label of the y axis
         layers : array
@@ -518,10 +522,10 @@ def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data,
         logger.info("Figure for vbar chart: %s", figure_title)
         # Set the x_data as x_range (for categorical data)?
         if set_x_range:
-            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=x_data)
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=x_data)
         # Dont set the x_range
         else:
-            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=None)
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=None)
         for (index, layer) in enumerate(layers):
             logger.info("Add Layer for %s", layer)
             figure.addVBarLayer(x_data[index], y_data[index], color_sequencing=False, legend_label=layer, width=width)
