@@ -7,10 +7,14 @@ dependencies:
   - _openmp_mutex=4.5=2_gnu
   - alsa-lib=1.2.3.2=h166bdaf_0
   - bokeh=3.1.1=pyhd8ed1ab_0
+  - brotli-python=1.1.0=py38h17151c0_1
   - bzip2=1.0.8=hd590300_5
   - ca-certificates=2024.2.2=hbcca054_0
   - cairo=1.16.0=h6cf1ce9_1008
+  - certifi=2024.2.2=pyhd8ed1ab_0
+  - charset-normalizer=3.3.2=pyhd8ed1ab_0
   - contourpy=1.1.1=py38h7f3f72f_1
+  - cython=3.0.10=py38h17151c0_0
   - dbus=1.13.6=h5008d03_3
   - expat=2.5.0=hcb278e6_1
   - ffmpeg=4.1.3=h167e202_0
@@ -28,8 +32,10 @@ dependencies:
   - harfbuzz=2.9.1=h83ec7ef_1
   - hdf5=1.10.5=nompi_h5b725eb_1114
   - icu=68.2=h9c3ff4c_0
+  - idna=3.6=pyhd8ed1ab_0
   - jasper=1.900.1=h07fcdf6_1006
   - jinja2=3.1.3=pyhd8ed1ab_0
+  - joblib=1.4.0=pyhd8ed1ab_0
   - jpeg=9e=h0b41bf4_3
   - keyutils=1.6.1=h166bdaf_0
   - krb5=1.19.3=h3790be6_0
@@ -83,9 +89,13 @@ dependencies:
   - openssl=1.1.1w=hd590300_0
   - packaging=23.2=pyhd8ed1ab_0
   - pandas=2.0.3=py38h01efb38_1
+  - patsy=0.5.6=pyhd8ed1ab_0
   - pcre2=10.42=hcad00b1_0
   - pip=23.3.2=pyhd8ed1ab_0
   - pixman=0.43.0=h59595ed_0
+  - platformdirs=4.2.0=pyhd8ed1ab_0
+  - pmdarima=1.8.5=py38h0a891b7_1
+  - pooch=1.8.1=pyhd8ed1ab_0
   - pthread-stubs=0.4=h36c2ea0_1001
   - py-opencv=4.1.2=py38h5ca1d4c_2
   - pyqt=5.12.3=py38h578d9bd_8
@@ -93,6 +103,7 @@ dependencies:
   - pyqt5-sip=4.19.18=py38h709712a_8
   - pyqtchart=5.12=py38h7400c14_8
   - pyqtwebengine=5.12.1=py38h7400c14_8
+  - pysocks=1.7.1=pyha2e5f31_6
   - python=3.8.15=h257c98d_0_cpython
   - python-dateutil=2.8.2=pyhd8ed1ab_0
   - python-tzdata=2023.4=pyhd8ed1ab_0
@@ -101,11 +112,17 @@ dependencies:
   - pyyaml=6.0.1=py38h01eb140_1
   - qt=5.12.9=hda022c4_4
   - readline=8.2=h8228510_1
+  - requests=2.31.0=pyhd8ed1ab_0
+  - scikit-learn=1.3.2=py38ha25d942_2
+  - scipy=1.10.1=py38h59b608b_3
   - setuptools=69.0.3=pyhd8ed1ab_0
   - six=1.16.0=pyh6c4a22f_0
   - sqlite=3.44.2=h2c6b66d_0
+  - statsmodels=0.14.1=py38h7f0c24c_0
+  - threadpoolctl=3.4.0=pyhc1e730c_0
   - tk=8.6.13=noxft_h4845f30_101
   - tornado=6.3.3=py38h01eb140_1
+  - urllib3=2.2.1=pyhd8ed1ab_0
   - wheel=0.42.0=pyhd8ed1ab_0
   - x264=1!152.20180806=h14c3975_0
   - xorg-kbproto=1.0.7=h7f98852_1002
@@ -129,9 +146,10 @@ dependencies:
       - flatbuffers==23.5.26
       - mediapipe==0.10.9
       - opencv-contrib-python==4.9.0.80
-      - opencv-python==4.1.2.30
+      - opencv-python==4.9.0.80
       - pillow==10.2.0
       - protobuf==3.20.3
       - seglearn==1.2.5
+      - simpleaudio==1.0.4
       - sounddevice==0.4.6
 prefix: /home/florian/miniconda3/envs/circles-with-cv

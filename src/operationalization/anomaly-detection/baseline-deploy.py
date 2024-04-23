@@ -64,9 +64,8 @@ if __name__ == "__main__":
     clf = load(file_path)
 
     # Join the filepath of the raw data file
-    file_input_path = os.path.join(deployment_video_path, "deployment_fromSide.mov")
-    #file_input_path = os.path.join(deployment_video_path, "deployment_fromTop.mp4")
-    #file_input_path = os.path.join(deployment_video_path, "deployment_fromSide_otherDirection.MOV")
+    file_input_path = os.path.join(deployment_video_path, "deployment_fromSide_Trial1.mp4")
+    #file_input_path = os.path.join(deployment_video_path, "deployment_fromSide_Trial2.mp4")
     __own_logger.info("Input video: %s", file_input_path)
 
     # Initialize MediaPipe Pose and Drawing utilities

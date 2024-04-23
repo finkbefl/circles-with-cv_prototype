@@ -165,7 +165,7 @@ class PlotMultipleLayers(PlotBokeh):
         self.__own_figure.circle(x=x_data, y=y_data, legend_label=legend_label, color=next(self.__color_iter))
         self.__own_logger.info("Added  circle layer %s", legend_label)
 
-    def addVBarLayer(self, x_data, y_data, color_sequencing=True):
+    def addVBarLayer(self, x_data, y_data, color_sequencing=True, legend_label=None, width=0.8):
         """
         Add a layer to the figure (vertical bar representation)
         ----------
@@ -176,6 +176,10 @@ class PlotMultipleLayers(PlotBokeh):
                 The y data to plot
             color_sequencing : boolean
                 A flag, whether every bar sould be drawn in another color with the known color sequence
+            legend_label : str
+                The legend label of the layer
+            width : numbers.Real
+                The width of the bar
         ----------
         Returns:
             no returns
@@ -185,10 +189,18 @@ class PlotMultipleLayers(PlotBokeh):
         #checkParameter(y_data, Real)
         if color_sequencing:
             # add a plot to the figure, assign every bar in another color with the known color sequence
-            self.__own_figure.vbar(x = x_data, top = y_data, width=0.8, color=Category10_10[0:len(x_data)])
+            if legend_label is None:
+                self.__own_figure.vbar(x = x_data, top = y_data, width=width, color=Category10_10[0:len(x_data)])
+            # else :
+            #     # When legend_labels are defined, then we assume that we need multiple layers  with different colors and the bars should be visible with transparent colors to get overlaps visible
+            #     # As this option allows color-sequencing, multiple layers makes no sense?
         else:
             # add a plot to the figure
-            self.__own_figure.vbar(x = x_data, top = y_data, width=0.8)
+            if legend_label is None:
+                self.__own_figure.vbar(x = x_data, top = y_data, width=width)
+            else :
+                # When legend_labels are defined, then we assume that we need multiple layers  with different colors and the bars should be visible with transparent colors to get overlaps visible
+                self.__own_figure.vbar(x = x_data, top = y_data, width=width, legend_label=legend_label, color=next(self.__color_iter), fill_alpha=0.6)
 
         self.__own_logger.info("Added vbar layer")
 
@@ -433,7 +445,7 @@ class PlotMultipleFigures(PlotBokeh):
 
 #########################################################
 
-def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True, color_sequencing=True):
+def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True, color_sequencing=True, x_label=None, width=0.8):
     """
     Function to create a vbar chart figure
     ----------
@@ -442,6 +454,8 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
             The Logger to log with
         figure_title : str
             The title of the figure
+        x_label : str
+            The label of the x axis
         y_label : str
             The label of the y axis
         x_data : numbers.Real
@@ -452,6 +466,8 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
             set the x_data as range of the x-axis (for categorical data)
         color_sequencing : boolean
             A flag, whether every bar sould be drawn in another color with the known color sequence
+        width : numbers.Real
+                The width of the bar
     ----------
     Returns:
         The bokeh class
@@ -461,11 +477,58 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
         logger.info("Figure for vbar chart: %s", figure_title)
         # Set the x_data as x_range (for categorical data)?
         if set_x_range:
-            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=x_data)
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=x_data)
         # Dont set the x_range
         else:
-            figure = PlotMultipleLayers(figure_title, None, y_label, x_range=None)
-        figure.addVBarLayer(x_data, y_data, color_sequencing=color_sequencing)
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=None)
+        figure.addVBarLayer(x_data, y_data, color_sequencing=color_sequencing, width=width)
+        return figure
+    except TypeError as error:
+        logger.error("########## Error when trying to create figure ##########", exc_info=error)
+        sys.exit('A parameter does not match the given type')
+
+#########################################################
+
+def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data, set_x_range=True, x_label=None, width=0.8):
+    """
+    Function to create a vbar chart figure
+    ----------
+    Parameters:
+        logger : Logger
+            The Logger to log with
+        figure_title : str
+            The title of the figure
+        x_label : str
+            The label of the x axis
+        y_label : str
+            The label of the y axis
+        layers : array
+            The names of the layers
+        x_data : numbers.Real
+            The x data to plot
+        y_data : numbers.Real
+            The y data to plot
+        set_x_range : boolean
+            set the x_data as range of the x-axis (for categorical data)
+        width : numbers.Real
+                The width of the bar
+        
+    ----------
+    Returns:
+        The bokeh class
+    """
+
+    try:
+        logger.info("Figure for vbar chart: %s", figure_title)
+        # Set the x_data as x_range (for categorical data)?
+        if set_x_range:
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=x_data)
+        # Dont set the x_range
+        else:
+            figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=None)
+        for (index, layer) in enumerate(layers):
+            logger.info("Add Layer for %s", layer)
+            figure.addVBarLayer(x_data[index], y_data[index], color_sequencing=False, legend_label=layer, width=width)
         return figure
     except TypeError as error:
         logger.error("########## Error when trying to create figure ##########", exc_info=error)
