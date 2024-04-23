@@ -181,34 +181,35 @@ if __name__ == "__main__":
             # And set the target variable to "no anomaly detected"
             y_pred_single_arr.append(False)
 
-        # # Naming a window
-        # window_name = "Data Featurization"
-        # # cv2.WINDOW_NORMAL makes the output window resizealbe
-        # cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-        # # Show it in fullscreen
-        # cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        # Naming a window
+        window_name = "Data Featurization"
+        # cv2.WINDOW_NORMAL makes the output window resizealbe
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        # Show it in fullscreen
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-        # # Add some text
-        # cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
-        # cv2.putText(frame,"Anomaly:",(1500,80),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+        # Add some text
+        cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+        #cv2.putText(frame,"Anomaly:",(1500,80),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
 
-        # # Get the frame rate of the source video
-        # fps =  cap.get(cv2.CAP_PROP_FPS)
-        # cv2.putText(frame,f'Framerate (source): {fps:.1f} FPS',(0,1000),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)
-        # # Put calculated frame rate for the generated video as text in image
-        # cv2.putText(frame,f'Framerate (generated): {framerate:.1f} FPS',(0,1040),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)   
+        # Get the frame rate of the source video
+        fps =  cap.get(cv2.CAP_PROP_FPS)
+        cv2.putText(frame,f'Framerate (source): {fps:.1f} FPS',(0,1000),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)
+        # Put calculated frame rate for the generated video as text in image
+        cv2.putText(frame,f'Framerate (generated): {framerate:.1f} FPS',(0,1040),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)   
 
-        # # Display the frame
-        # cv2.imshow(window_name, frame)
+        # Display the frame
+        cv2.imshow(window_name, frame)
 
+        key = cv2.waitKey(1)
         # # Press 'q' to quit
         # key = cv2.waitKey(0 ) & 0xFF
         # # if the `q` key was pressed, break from the loop
         # if key == ord('q'):
         #     break
 
-        # # Calculate the frame rate of the generated video via showing the frames
-        # framerate = 1.0 / (time.time() - start_time)
+        # Calculate the frame rate of the generated video via showing the frames
+        framerate = 1.0 / (time.time() - start_time)
             
     # Print the information how long the processing tooks
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -255,6 +256,8 @@ if __name__ == "__main__":
 
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
+
+    cv2.destroyAllWindows()
 
     # Extracting the video parts with detected anomalies
     # Get the indizes for which frames a anomaly is detected
@@ -317,6 +320,7 @@ if __name__ == "__main__":
 
                 # Add some text
                 cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1) 
+                cv2.putText(frame,"Anomalies",(1500,80),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
 
                 # Display the frame
                 cv2.imshow(window_name, frame)
