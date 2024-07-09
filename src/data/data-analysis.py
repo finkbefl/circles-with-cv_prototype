@@ -253,6 +253,11 @@ if __name__ == "__main__":
     }
     # Show Line-Circle Chart
     figure_duration_time_series = figure_time_series_data_as_layers(__own_logger, "Länge der Videos", "Dauer in s", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
+    # Additional, visualize it as histogramm
+    # Create values for visualization data (get the count of values via histogram)
+    hist, bin_edges = np.histogram(dict_visualization_data.get('value'), density=False, bins=10)
+    # Print the histogram
+    figure_duration_hist = figure_hist(__own_logger, "Häufigkeitsverteilung der Länge der Videos", "Dauer in s", "Anzahl Videos", bin_edges, hist)
     #bit_rate
     # Create dict for visualization data
     dict_visualization_data = {
@@ -263,6 +268,11 @@ if __name__ == "__main__":
     }
     # Show Line-Circle Chart
     figure_bit_rate_time_series = figure_time_series_data_as_layers(__own_logger, "Bitrate", "bit/s", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
+    # Additional, visualize it as histogramm
+    # Create values for visualization data (get the count of values via histogram)
+    hist, bin_edges = np.histogram(dict_visualization_data.get('value'), density=False, bins=10)
+    # Print the histogram
+    figure_bit_rate_hist = figure_hist(__own_logger, "Häufigkeitsverteilung der Bitrate", "bit/s", "Anzahl Videos", bin_edges, hist)
     # nb_frames
     # Create dict for visualization data
     dict_visualization_data = {
@@ -273,6 +283,11 @@ if __name__ == "__main__":
     }
     # Show Line-Circle Chart
     figure_nb_frames_time_series = figure_time_series_data_as_layers(__own_logger, "Anzahl Frames", "Anzahl Frames", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Nummer des Videos", set_x_range=True)
+    # Additional, visualize it as histogramm
+    # Create values for visualization data (get the count of values via histogram)
+    hist, bin_edges = np.histogram(dict_visualization_data.get('value'), density=False, bins=10)
+    # Print the histogram
+    figure_nb_frames_hist = figure_hist(__own_logger, "Häufigkeitsverteilung der Anzahl Frames", "Anzahl Frames", "Anzahl Videos", bin_edges, hist)
     # manual_circle_detection_num_attempts
     # Count number of digits (detected time point in videos) which are seperated by '-' (The "timestamp" of kdenlive consists of the timestamp in seconds, and the number of the frame for this second, seperated by ':')
     start_count = [(sum(inner.split(':')[0].isdigit() for inner in val.split('-'))) for val in data_collection.manual_circle_start_kdenlive]
@@ -315,12 +330,17 @@ if __name__ == "__main__":
     plot.appendFigure(figure_pix_fmt_hist.getFigure())
     plot.appendFigure(figure_frame_rate_hist.getFigure())
     plot.appendFigure(figure_duration_time_series.getFigure())
+    plot.appendFigure(figure_duration_hist.getFigure())
     plot.appendFigure(figure_nb_frames_time_series.getFigure())
+    plot.appendFigure(figure_nb_frames_hist.getFigure())
     plot.appendFigure(figure_bit_rate_time_series.getFigure())
+    plot.appendFigure(figure_bit_rate_hist.getFigure())
     plot.appendFigure(figure_manual_circle_detect_time_series.getFigure())
     plot.appendFigure(figure_manual_anomalie_detect_time_series.getFigure())
     # Show the plot in responsive layout, but only stretch the width
-    plot.showPlotResponsive('stretch_width')
+    #plot.showPlotResponsive('stretch_width')
+    # Show the plot in fixed layout
+    plot.showPlotResponsive('fixed')
 
 
 
