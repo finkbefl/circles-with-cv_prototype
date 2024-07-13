@@ -221,9 +221,10 @@ if __name__ == "__main__":
     # Calc float numbers from fractions
     r_frame_rate = list(float(Fraction(num)) for num in data_collection.r_frame_rate)
     avg_frame_rate = list(float(Fraction(num)) for num in data_collection.avg_frame_rate)
+    __own_logger.info("Durchschnittliche Bildiwederholraten: %s", avg_frame_rate)
     # Create values for visualization data (get the count of values via histogram)
-    hist, bin_edges = np.histogram(r_frame_rate, density=False, bins=15)
-    hist_1, bin_edges_1 = np.histogram(avg_frame_rate, density=False, bins=15)
+    hist, bin_edges = np.histogram(r_frame_rate, density=False, bins=50)
+    hist_1, bin_edges_1 = np.histogram(avg_frame_rate, density=False, bins=50)
     # Bins must be equal to get correct visualization! Equalize if necessary
     if bin_edges.min() < bin_edges_1.min() or bin_edges.max() > bin_edges_1.max():
         # Range of bin_edges is bigger, use it also for hist_1
