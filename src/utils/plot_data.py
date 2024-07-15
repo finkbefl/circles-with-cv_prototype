@@ -441,6 +441,7 @@ class PlotMultipleFigures(PlotBokeh):
             figure.sizing_mode=sizing_mode
         self.__own_logger.info("Show the column layout")
         plot = column(self.__figure_list, sizing_mode=sizing_mode)
+        #plot = column(self.__figure_list, sizing_mode=sizing_mode, max_width=800)
         show(plot)
 
 #########################################################

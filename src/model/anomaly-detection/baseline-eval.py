@@ -96,7 +96,7 @@ if __name__ == "__main__":
         "x_data": data_test.index + 1
     }
     # Create a Line-Circle Chart
-    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Positionen der Füße", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
 
