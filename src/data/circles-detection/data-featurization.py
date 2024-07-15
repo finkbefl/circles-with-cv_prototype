@@ -213,7 +213,7 @@ if __name__ == "__main__":
             "x_data": convert_series_into_date(features['timestamp'], unit='ms')
         }
         # Create a Line-Circle Chart
-        figure_features = figure_time_series_data_as_layers(__own_logger, "{}: Positionen der Füße".format(filename), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+        figure_features = figure_time_series_data_as_layers(__own_logger, "{}: Zeitreihendaten".format(filename), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
         # Append the figure to the plot
         plot.appendFigure(figure_features.getFigure())
 
