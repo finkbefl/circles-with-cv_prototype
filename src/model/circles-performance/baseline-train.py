@@ -115,7 +115,7 @@ if __name__ == "__main__":
     tuning_parameters = [{'svc__kernel': ['rbf'], 'svc__gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'svc__C': [1, 10, 100,1000]}]
     #tuning_parameters = [{'svc__kernel': ['rbf'], 'svc__gamma': ['scale','auto',1e-2,1e-3, 1e-4], 'svc__C': [1, 10, 100,1000], 'seg__width': [5,10,15], 'seg__overlap': [0.2, 0.4, 0.6, 0.8]}]
     #Define the model to be svm.SVC, specify the parameters space and scoring method
-    clf_gridsearch=GridSearchCV(pipeline,tuning_parameters,scoring='precision')
+    clf_gridsearch=GridSearchCV(pipeline,tuning_parameters,scoring='f1')
     # Use the training data to find the best params
     clf_gridsearch.fit(data_training.drop(['amplitude_lack', 'missing_data'], axis=1).to_numpy(), data_training.amplitude_lack.to_numpy())
     # Print out the mean scores for the different set of parameters
