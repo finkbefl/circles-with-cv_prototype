@@ -116,7 +116,7 @@ class PlotMultipleLayers(PlotBokeh):
             self.__own_figure = figure(title=figure_title, x_axis_type=x_axis_type, x_range=x_range, x_axis_label=x_label, y_axis_label=y_label)
         self.__own_logger.info("Bokeh plot for multiple layers initialized for figure %s", figure_title)
 
-    def addLineCircleLayer(self, legend_label, x_data, y_data):
+    def addLineCircleLayer(self, legend_label, x_data, y_data, legend_location='top_right'):
         """
         Add a layer to the figure (line and circle representation)
         ----------
@@ -127,6 +127,8 @@ class PlotMultipleLayers(PlotBokeh):
                 The x data to plot
             y_data : Series
                 The y data to plot
+            legend_location : str
+                The location of the legend
         ----------
         Returns:
             no returns
@@ -140,6 +142,7 @@ class PlotMultipleLayers(PlotBokeh):
         # add the plots to the figure
         self.__own_figure.line(x=x_data, y=y_data, legend_label=legend_label, color=color)
         self.__own_figure.circle(x=x_data, y=y_data, legend_label=legend_label, color=color)
+        self.__own_figure.legend.location=legend_location
         self.__own_logger.info("Added  line/circle layer %s", legend_label)
 
     def addCircleLayer(self, legend_label, x_data, y_data):
@@ -440,8 +443,8 @@ class PlotMultipleFigures(PlotBokeh):
         for figure in self.__figure_list:
             figure.sizing_mode=sizing_mode
         self.__own_logger.info("Show the column layout")
-        plot = column(self.__figure_list, sizing_mode=sizing_mode)
-        #plot = column(self.__figure_list, sizing_mode='fixed', width=700, height=400) # For documentation purposes
+        #plot = column(self.__figure_list, sizing_mode=sizing_mode)
+        plot = column(self.__figure_list, sizing_mode='fixed', width=700, height=400) # For documentation purposes
         show(plot)
 
 #########################################################
@@ -607,7 +610,7 @@ def figure_hist_as_layers(logger, figure_title, x_label, y_label, layers, edges,
 
 #########################################################
 
-def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_layers, y_datas, x_label=None, set_x_range=False, x_axis_type='auto'):
+def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_layers, y_datas, x_label=None, set_x_range=False, x_axis_type='auto', legend_location='top_right'):
     """
     Function to create a figure for time series data as multiple layers
     ----------
@@ -630,6 +633,8 @@ def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_l
             Set the x_data as x_range when creating a figure (for categorical data)
         x_axis_type : str
             The type of the x-axis
+        legend_location : str
+            The location of the legend
     ----------
     Returns:
         The figure
@@ -643,7 +648,7 @@ def figure_time_series_data_as_layers(logger, figure_title, y_label, x_data, y_l
             figure = PlotMultipleLayers(figure_title, x_label, y_label, x_axis_type=x_axis_type)
         for (index, layer) in enumerate(y_layers):
             logger.info("Add Layer for %s", layer)
-            figure.addLineCircleLayer(layer, x_data, y_datas[index])
+            figure.addLineCircleLayer(layer, x_data, y_datas[index], legend_location)
         return figure
     except TypeError as error:
         logger.error("########## Error when trying to create figure ##########", exc_info=error)
