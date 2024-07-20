@@ -225,25 +225,26 @@ if __name__ == "__main__":
     # Create values for visualization data (get the count of values via histogram)
     hist, bin_edges = np.histogram(r_frame_rate, density=False, bins=50)
     hist_1, bin_edges_1 = np.histogram(avg_frame_rate, density=False, bins=50)
-    # Bins must be equal to get correct visualization! Equalize if necessary
-    if bin_edges.min() < bin_edges_1.min() or bin_edges.max() > bin_edges_1.max():
-        # Range of bin_edges is bigger, use it also for hist_1
-        hist_1, bin_edges_1 = np.histogram(avg_frame_rate, density=False, bins=bin_edges)
-    elif bin_edges_1.min() < bin_edges.min() or bin_edges_1.max() > bin_edges.max():
-        # Range of bin_edges_1 is bigger, use it also for hist
-        hist, bin_edges = np.histogram(r_frame_rate, density=False, bins=bin_edges_1)
-    # Bins must be equal to get correct visualization! Check it!
-    if (bin_edges != bin_edges_1).any():
-        __own_logger.error("########## Error when trying to visualize multiple histogramms ##########")
-        sys.exit('Bins are not equal for visualize multiple histogramms')
-    # Create dict for visualization data
-    dict_visualization_data = {
-        # Bins edges must be in form of string elements in list
-        "layer": ["r_frame_rate", "avg_frame_rate"],
-        "label": [["%.5f" % number for number in bin_edges], ["%.5f" % number for number in bin_edges_1]],
-        "value": [hist, hist_1]
-    }
-    figure_frame_rate_hist = figure_hist_as_layers(__own_logger, "Häufigkeitsverteilung der Bildwiederholrate", "Pixel", "Anzahl Videos", dict_visualization_data.get('layer'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+    # # Bins must be equal to get correct visualization! Equalize if necessary
+    # if bin_edges.min() < bin_edges_1.min() or bin_edges.max() > bin_edges_1.max():
+    #     # Range of bin_edges is bigger, use it also for hist_1
+    #     hist_1, bin_edges_1 = np.histogram(avg_frame_rate, density=False, bins=bin_edges)
+    # elif bin_edges_1.min() < bin_edges.min() or bin_edges_1.max() > bin_edges.max():
+    #     # Range of bin_edges_1 is bigger, use it also for hist
+    #     hist, bin_edges = np.histogram(r_frame_rate, density=False, bins=bin_edges_1)
+    # # Bins must be equal to get correct visualization! Check it!
+    # if (bin_edges != bin_edges_1).any():
+    #     __own_logger.error("########## Error when trying to visualize multiple histogramms ##########")
+    #     sys.exit('Bins are not equal for visualize multiple histogramms')
+    # # Create dict for visualization data
+    # dict_visualization_data = {
+    #     # Bins edges must be in form of string elements in list
+    #     "layer": ["r_frame_rate", "avg_frame_rate"],
+    #     "label": [["%.5f" % number for number in bin_edges], ["%.5f" % number for number in bin_edges_1]],
+    #     "value": [hist, hist_1]
+    # }
+    #figure_frame_rate_hist = figure_hist_as_layers(__own_logger, "Häufigkeitsverteilung der Bildwiederholrate", "Pixel", "Anzahl Videos", dict_visualization_data.get('layer'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
+    figure_frame_rate_hist = figure_hist(__own_logger, "Häufigkeitsverteilung der Bildwiederholrate", "frames/s", "Anzahl Videos", bin_edges_1, hist_1)
     # duration
     # Create dict for visualization data
     dict_visualization_data = {
@@ -341,7 +342,7 @@ if __name__ == "__main__":
     # Show the plot in responsive layout, but only stretch the width
     #plot.showPlotResponsive('stretch_width')
     # Show the plot in fixed layout
-    plot.showPlotResponsive('fixed')
+    plot.showPlotResponsive('stretch_width')
 
 
 
