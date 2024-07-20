@@ -152,7 +152,7 @@ if __name__ == "__main__":
         "x_data": train_sizes_as_fraction
     }
     # Create a Line-Circle Chart
-    figure_learning_courve = figure_time_series_data_as_layers(__own_logger, "Lernkurve", "Score", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Training Size")
+    figure_learning_courve = figure_time_series_data_as_layers(__own_logger, "Lernkurve", "Score", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Training Size", legend_location='bottom_right')
     # Append the figure to the plot
     plot.appendFigure(figure_learning_courve.getFigure())
 
