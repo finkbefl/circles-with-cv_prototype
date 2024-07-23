@@ -224,9 +224,9 @@ if __name__ == "__main__":
         recall = metrics.recall_score(data_specific_video.amplitude_lack, data_specific_video.prediction)
         __own_logger.info("Testdaten Video %d: Recall: %s",video_name_num, recall)
         f1 = metrics.f1_score(data_specific_video.amplitude_lack, data_specific_video.prediction)
-        __own_logger.info("Testdaten Video %d: F1-Score: %s",video_name_num, precision)
+        __own_logger.info("Testdaten Video %d: F1-Score: %s",video_name_num, f1)
         # Create a bar chart
-        figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall], set_x_range=True, color_sequencing=False)
+        figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall, f1], set_x_range=True, color_sequencing=False)
         # Append the figure to the plot
         plot.appendFigure(figure_evaluation_single.getFigure())
 
