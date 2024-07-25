@@ -163,6 +163,14 @@ if __name__ == "__main__":
 
     #Train the model using the training sets
     pipeline.fit(data_training.drop(['amplitude_lack', 'missing_data'], axis=1).to_numpy(), data_training.amplitude_lack.to_numpy())
+
+    # Calculate the gamma value 'scale' based on the scales data
+    data_training_scaled = scaler.transform(data_training.drop(['amplitude_lack', 'missing_data'], axis=1).to_numpy())
+    n_features = data_training_scaled.shape[1]
+    variance = data_training_scaled.var()
+    gamma = 1 / (n_features * variance)
+    __own_logger.info("gamma value for 'scale' calculated: n_features = %s; variance = %s; gamma = %s", n_features, variance, gamma)
+    __own_logger.info("gamma value for 'scale' retrieved from trained model: gamma = %s", clf_best._gamma)
         
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
