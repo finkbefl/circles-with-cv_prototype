@@ -159,6 +159,7 @@ if __name__ == "__main__":
     accuracy_arr = []
     precision_arr = []
     recall_arr = []
+    f1_arr = []
     for params in grid:
         __own_logger.info("Evaluate tuning parameter: %s",params)
         pipeline = sgl.Pype([
@@ -191,22 +192,27 @@ if __name__ == "__main__":
         recall = metrics.recall_score(data_evaluation.anomaly, data_evaluation.prediction)
         __own_logger.info("Recall: %s",recall)
         recall_arr.append(recall)
+        # Model F1-Score
+        f1 = metrics.f1_score(data_evaluation.anomaly, data_evaluation.prediction)
+        __own_logger.info("F1-Score: %s",f1)
+        f1_arr.append(f1)
     # Visualize the evaluation criteria values for the params
     # Create dict for visualization data
     dict_visualization_data = {
-        "label": ['accuracy', 'precision', 'recall'],
-        "value": [accuracy_arr, precision_arr, recall_arr],
+        "label": ['accuracy', 'precision', 'recall', 'f1'],
+        "value": [accuracy_arr, precision_arr, recall_arr, f1_arr],
         "x_data": list(range(0, len(grid)))
     }
     # # Create a Line-Circle Chart
-    figure_hyperparam_optimization_eval = figure_time_series_data_as_layers(__own_logger, "Hyperparameter Tuning with ParameterGrid: Metriken", "Wert der Metrik", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "ParameterGrid-Index")
-    # Detect the best params: Using precision as criteria
-    best_param_value = max(precision_arr)
-    best_param_index = precision_arr.index(max(precision_arr))
-    __own_logger.info("Evaluation based on precision: Max value %s with param (index %s) %s", best_param_value, best_param_index, grid[best_param_index - 1])
+    figure_hyperparam_optimization_eval = figure_time_series_data_as_layers(__own_logger, "Hyperparameter Tuning mit ParameterGrid: Metriken", "Wert der Metrik", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "ParameterGrid-Index", legend_location='top_left')
+    # Detect the best params: Using accuracy as criteria
+    best_param_value = max(accuracy_arr)
+    best_param_index = accuracy_arr.index(max(accuracy_arr))
+    __own_logger.info("Evaluation based on accuracy: Max value %s with param (index %s) %s", best_param_value, best_param_index, grid[best_param_index - 1])
     # VIsualize the best params
-    figure_hyperparam_optimization_eval.add_vertical_line(best_param_index, 1.05)
-    figure_hyperparam_optimization_eval.add_annotation(best_param_index, 1.05, "Precision: {}, Index: {}".format(best_param_value, best_param_index))
+    figure_hyperparam_optimization_eval.add_vertical_line(best_param_index, 1.1)
+    figure_hyperparam_optimization_eval.add_annotation(best_param_index-0.5, 1.05, "Accuracy: {:.2f}".format(best_param_value), text_align='right')
+    figure_hyperparam_optimization_eval.add_annotation(best_param_index-0.5, 0, "Index: {}".format(best_param_index), text_align='right')
     # # Append the figure to the plot
     plot.appendFigure(figure_hyperparam_optimization_eval.getFigure())
 
