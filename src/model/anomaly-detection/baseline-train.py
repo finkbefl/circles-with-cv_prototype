@@ -208,7 +208,7 @@ if __name__ == "__main__":
     # Detect the best params: Using accuracy as criteria
     best_param_value = max(accuracy_arr)
     best_param_index = accuracy_arr.index(max(accuracy_arr))
-    __own_logger.info("Evaluation based on accuracy: Max value %s with param (index %s) %s", best_param_value, best_param_index, grid[best_param_index - 1])
+    __own_logger.info("Evaluation based on accuracy: Max value %s with param (index %s) %s", best_param_value, best_param_index, grid[best_param_index])
     # VIsualize the best params
     figure_hyperparam_optimization_eval.add_vertical_line(best_param_index, 1.1)
     figure_hyperparam_optimization_eval.add_annotation(best_param_index-0.5, 1.05, "Accuracy: {:.2f}".format(best_param_value), text_align='right')
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     # Using the best parameters and create a pipeline
     pipeline = sgl.Pype([
         ("scaler", StandardScaler()), 
-        ("svc", svm.OneClassSVM(kernel=grid[best_param_index - 1]['kernel'], gamma=grid[best_param_index - 1]['gamma'], nu=grid[best_param_index - 1]['nu']))])
+        ("svc", svm.OneClassSVM(kernel=grid[best_param_index]['kernel'], gamma=grid[best_param_index]['gamma'], nu=grid[best_param_index]['nu']))])
 
     #Fit the model using the training sets
     pipeline.fit(data_training.drop(['missing_data'], axis=1).to_numpy(), [])
