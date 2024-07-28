@@ -300,7 +300,7 @@ class PlotMultipleLayers(PlotBokeh):
         checkParameter(top_val, Real, False)
         self.__own_figure.line([x_pos, x_pos], [bottom_val, top_val], line_width=2, color="black")
 
-    def add_annotation(self, x_pos, y_pos, text):
+    def add_annotation(self, x_pos, y_pos, text, text_align="center"):
         """
         Add a text at the specific postition
         ----------
@@ -311,6 +311,8 @@ class PlotMultipleLayers(PlotBokeh):
                 The y position
             text : str
                 The text
+            text_align : str
+                The position alignment of the text
         ----------
         Returns:
             no returns
@@ -318,7 +320,7 @@ class PlotMultipleLayers(PlotBokeh):
         checkParameterString(text)
         checkParameter(x_pos, Real, False)
         checkParameter(y_pos, Real, False)
-        mytext = Label(x=x_pos, y=y_pos, text=text, text_align="center")
+        mytext = Label(x=x_pos, y=y_pos, text=text, text_align=text_align, )
         self.__own_figure.add_layout(mytext)
 
     def getFigure(self):

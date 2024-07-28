@@ -127,6 +127,18 @@ if __name__ == "__main__":
     figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Bewertung", "Kreisflanken detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
+    # Visualize the prediction for the test data input without the info about missing data
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": [data_test.amplitude_lack.name, data_test.prediction.name],
+        "value": [data_test.amplitude_lack.values, data_test.prediction.values],
+        # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
+        "x_data": data_test.index + 1
+    }
+    # Create a Line-Circle Chart
+    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Bewertung", "Kreisflanken detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame", legend_location='center_right')
+    # Append the figure to the plot
+    plot.appendFigure(figure_test_data.getFigure())
 
     # Iterate over the single videos and using the single testdata for video-specific evalution
     # Iterate over all data where selected as test data (tagged in metadata column 'usage' with 'test')
@@ -224,9 +236,9 @@ if __name__ == "__main__":
         recall = metrics.recall_score(data_specific_video.amplitude_lack, data_specific_video.prediction)
         __own_logger.info("Testdaten Video %d: Recall: %s",video_name_num, recall)
         f1 = metrics.f1_score(data_specific_video.amplitude_lack, data_specific_video.prediction)
-        __own_logger.info("Testdaten Video %d: F1-Score: %s",video_name_num, precision)
+        __own_logger.info("Testdaten Video %d: F1-Score: %s",video_name_num, f1)
         # Create a bar chart
-        figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall], set_x_range=True, color_sequencing=False)
+        figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall, f1], set_x_range=True, color_sequencing=False)
         # Append the figure to the plot
         plot.appendFigure(figure_evaluation_single.getFigure())
 

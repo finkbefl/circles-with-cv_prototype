@@ -195,11 +195,15 @@ if __name__ == "__main__":
     recall = metrics.recall_score(data_test.anomaly, data_test.prediction)
     __own_logger.info("Recall: %s",recall)
 
+    # Model F1-Score
+    f1 = metrics.f1_score(data_test.anomaly, data_test.prediction)
+    __own_logger.info("F1-Score: %s",f1)
+
     # Visualize the metrics
     # Create dict for visualization data
     dict_visualization_data = {
-        "label": ["accuracy", "precision", "recall"],
-        "value": [accuracy, precision, recall]
+        "label": ["accuracy", "precision", "recall", 'f1'],
+        "value": [accuracy, precision, recall, f1]
     }
     # Create a bar chart
     figure_evaluation = figure_vbar(__own_logger, "Evaluierung", "Wert der Metrik", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
@@ -224,6 +228,8 @@ if __name__ == "__main__":
         __own_logger.info("Testdaten Video %d: Precision: %s",video_name_num, precision)
         recall = metrics.recall_score(data_specific_video.anomaly, data_specific_video.prediction)
         __own_logger.info("Testdaten Video %d: Recall: %s",video_name_num, recall)
+        f1 = metrics.f1_score(data_specific_video.anomaly, data_specific_video.prediction)
+        __own_logger.info("Testdaten Video %d: F1-Score: %s",video_name_num, f1)
         # Create a bar chart
         figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall], set_x_range=True, color_sequencing=False)
         # Append the figure to the plot
