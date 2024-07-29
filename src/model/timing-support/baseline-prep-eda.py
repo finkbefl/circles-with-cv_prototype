@@ -27,6 +27,10 @@ from scipy.signal import argrelmin
 from scipy import signal
 # Fractions
 from fractions import Fraction
+# Boxplot
+import matplotlib.pyplot as plt
+# Heatmap
+import seaborn as sns
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
@@ -168,13 +172,34 @@ if __name__ == "__main__":
     figure_analyze_data = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Positionen der Füße und Handgelenke", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_data.getFigure())
+    # Visualize the data to analyze in detail without the missing data info
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": data_video_to_analyze.drop('missing_data', axis=1).columns.values, # Take all columns for visualization in dataframe
+        "value": [data_video_to_analyze.drop('missing_data', axis=1)[data_video_to_analyze.drop('missing_data', axis=1).columns.values][col] for col in data_video_to_analyze.drop('missing_data', axis=1)[data_video_to_analyze.drop('missing_data', axis=1).columns.values]],
+        # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
+        "x_data": data_video_to_analyze.index
+    }
+    # Create a Line-Circle Chart
+    figure_analyze_data = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Positionen der Füße und Handgelenke", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+    # Append the figure to the plot
+    plot.appendFigure(figure_analyze_data.getFigure())
 
     # Analyze the specific video (the time series data) in detail
     # Descriptive Statistics
     __own_logger.info("Descriptive Statistics: DataFrame describe: %s", data_video_to_analyze.describe())
+    # As boxplot
+    ax = data_video_to_analyze.plot.box(figsize=(10, 5), showmeans=True, grid=True)
+    #ax.set_title('Datenanalyse des Videos 2_0: Boxplot')
+    ax.set_ylabel("Position normiert auf die Breite bzw. Höhe des Bildes")
+    plt.show()
+
     # Data Analysis
     # Correlation
     __own_logger.info("Data Analysis: DataFrame correlation: %s", data_video_to_analyze.corr())     # TODO: Heatmap
+    # plot the heatmap
+    #sns.heatmap(data_video_to_analyze.corr())
+    #plt.show()
     # Skewness
     __own_logger.info("Data Analysis: DataFrame skewness: %s", data_video_to_analyze.skew(axis='index'))
     # Time Series Stationarity
