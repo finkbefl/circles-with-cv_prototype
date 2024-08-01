@@ -27,6 +27,10 @@ from scipy.signal import argrelmin
 from scipy import signal
 # Fractions
 from fractions import Fraction
+# Boxplot
+import matplotlib.pyplot as plt
+# Heatmap
+import seaborn as sns
 
 # Import internal packages/ classes
 # Import the src-path to sys path that the internal modules can be found
@@ -168,27 +172,48 @@ if __name__ == "__main__":
     figure_analyze_data = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Positionen der Füße und Handgelenke", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_data.getFigure())
+    # Visualize the data to analyze in detail without the missing data info
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": data_video_to_analyze.drop('missing_data', axis=1).columns.values, # Take all columns for visualization in dataframe
+        "value": [data_video_to_analyze.drop('missing_data', axis=1)[data_video_to_analyze.drop('missing_data', axis=1).columns.values][col] for col in data_video_to_analyze.drop('missing_data', axis=1)[data_video_to_analyze.drop('missing_data', axis=1).columns.values]],
+        # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
+        "x_data": data_video_to_analyze.index
+    }
+    # Create a Line-Circle Chart
+    figure_analyze_data = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Positionen der Füße und Handgelenke", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+    # Append the figure to the plot
+    plot.appendFigure(figure_analyze_data.getFigure())
 
     # Analyze the specific video (the time series data) in detail
     # Descriptive Statistics
     __own_logger.info("Descriptive Statistics: DataFrame describe: %s", data_video_to_analyze.describe())
+    # As boxplot
+    ax = data_video_to_analyze.plot.box(figsize=(10, 5), showmeans=True, grid=True)
+    #ax.set_title('Datenanalyse des Videos 2_0: Boxplot')
+    ax.set_ylabel("Position normiert auf die Breite bzw. Höhe des Bildes")
+    plt.show()
+
     # Data Analysis
     # Correlation
     __own_logger.info("Data Analysis: DataFrame correlation: %s", data_video_to_analyze.corr())     # TODO: Heatmap
+    # plot the heatmap
+    #sns.heatmap(data_video_to_analyze.corr())
+    #plt.show()
     # Skewness
     __own_logger.info("Data Analysis: DataFrame skewness: %s", data_video_to_analyze.skew(axis='index'))
-    # Time Series Stationarity
-    # Copy the data for stationary data
-    df_stationary_data = data_video_to_analyze.copy()
-    # Test the columns for stationarity
-    stationarity_results = stationarity_test(df_stationary_data)
-    # Are the columns strict stationary?
-    for column in stationarity_results:
-        __own_logger.info("Data Analysis: Stationarity: Column %s is stationary: %s", column, stationarity_results[column])
-        for value in stationarity_results[column].values():
-            if value == False:
-                #sys.exit('The data {} is not strict stationary! Fix it!'.format(column))
-                __own_logger.info("Data Analysis: Column %s is not stationary", column)
+    # # Time Series Stationarity
+    # # Copy the data for stationary data
+    # df_stationary_data = data_video_to_analyze.copy()
+    # # Test the columns for stationarity
+    # stationarity_results = stationarity_test(df_stationary_data)
+    # # Are the columns strict stationary?
+    # for column in stationarity_results:
+    #     __own_logger.info("Data Analysis: Stationarity: Column %s is stationary: %s", column, stationarity_results[column])
+    #     for value in stationarity_results[column].values():
+    #         if value == False:
+    #             #sys.exit('The data {} is not strict stationary! Fix it!'.format(column))
+    #             __own_logger.info("Data Analysis: Column %s is not stationary", column)
 
     # Get the frequency of the data: Calculate Spectrum (squared magnitude spectrum via fft)
     # At first get the sampling frequency of the video 2 (but index of rows starting with 0, so it is index 2-1): The frame rate (Calc float numbers from fractions)
@@ -213,7 +238,7 @@ if __name__ == "__main__":
     # Create a histogram: Frequency domain
     #figure_analyze_data_spectrum = figure_hist_as_layers(__own_logger, "Amplitudenspektrum", "Frequenz [Hz]", "Betrag im Quadrat des 2D-Fourier-Spektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label'), dict_visualization_data.get('value'))
     # Workaround: Realize it with vbar chart, as histogram is working with edges, but frequency are direct values, no edges
-    figure_analyze_data_spectrum_all = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Amplitudenspektrum", "Betrag im Quadrat des 2D-Fourier-Spektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05, x_label="Frequenz [Hz]")
+    figure_analyze_data_spectrum_all = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Leistungsspektren", "Betrag im Quadrat des 2D-Fourier-Amplitudenspektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05, x_label="Frequenz [Hz]")
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_data_spectrum_all.getFigure())
 
@@ -240,7 +265,7 @@ if __name__ == "__main__":
         frequencies_to_analyze = frequencies_arr[index]
         # Create a histogram: Frequency domain
         # Workaround: Realize it with vbar chart, as histogram is working with edges, but frequency are direct values, no edges
-        figure_analyze_data_spectrum = figure_vbar(__own_logger, "Datenanalyse des Videos 2_0: Amplitudenspektrum von {}".format(time_serie_to_analyze), "Betrag im Quadrat des 2D-Fourier-Spektrums", frequencies_to_analyze, spectrum_to_analyze, set_x_range=False, color_sequencing=False, width=0.05, x_label="Frequenz [Hz]")
+        figure_analyze_data_spectrum = figure_vbar(__own_logger, "Datenanalyse des Videos 2_0: Leistungsspektrum von {}".format(time_serie_to_analyze), "Betrag im Quadrat des 2D-Fourier-Amplitudenspektrums", frequencies_to_analyze, spectrum_to_analyze, set_x_range=False, color_sequencing=False, width=0.05, x_label="Frequenz [Hz]")
         # Get index with max value of spectrum amplitude
         idxmax = spectrum_to_analyze.idxmax()
         max_freq = frequencies_to_analyze[idxmax]
@@ -262,7 +287,7 @@ if __name__ == "__main__":
         __own_logger.info("Data Analysis %s: Max spectrum amplitude %s at frequency of the time series: %s Hz", time_serie_to_analyze, max, max_freq)
         # Add line to visualize the freq
         figure_analyze_data_spectrum.add_vertical_line(max_freq, max*1.05)
-        figure_analyze_data_spectrum.add_annotation(max_freq, max *1.05, '{:.4f} Hz'.format(max_freq))
+        figure_analyze_data_spectrum.add_annotation(max_freq, max *1.0, '  {:.4f} Hz'.format(max_freq), text_align='left')
         # Append the figure to the plot
         plot.appendFigure(figure_analyze_data_spectrum.getFigure())
         # At first calc the period of the periodic part in number of frames
@@ -291,12 +316,12 @@ if __name__ == "__main__":
         "value": max_ampl_arr,
     }
     # Create a bar chart
-    figure_analyze_frequencies = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Maximale Amplituden der Spektren", "Betrag im Quadrat des 2D-Fourier-Spektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05, x_label="Frequenz [Hz]")
+    figure_analyze_frequencies = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Maximale Amplituden der Spektren", "Betrag im Quadrat des 2D-Fourier-Amplitudenspektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05, x_label="Frequenz [Hz]")
     # Add line to visualize the max freqs seperated by foots and wrists
     figure_analyze_frequencies.add_vertical_line(max_freq_foot, max_ampl_foot*1.05)
-    figure_analyze_frequencies.add_annotation(max_freq_foot, max_ampl_foot *1.05, 'Max Ampl. Füße')
+    figure_analyze_frequencies.add_annotation(max_freq_foot, max_ampl_foot *1.0, '    Max Ampl. Füße', text_align='left')
     figure_analyze_frequencies.add_vertical_line(max_freq_wrist, max_ampl_wrist*1.05)
-    figure_analyze_frequencies.add_annotation(max_freq_wrist, max_ampl_wrist *1.05, 'Max Ampl. Hände')
+    figure_analyze_frequencies.add_annotation(max_freq_wrist, max_ampl_wrist *1.0, '    Max Ampl. Hände', text_align='left')
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_frequencies.getFigure())
 
@@ -319,7 +344,7 @@ if __name__ == "__main__":
         "x_data": data_video_to_analyze.index
     }
     # Create a Line-Circle Chart
-    figure_analyze_data_local_minima = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Zeitpunkte der Lokalen Minima von {} und {}".format(time_serie_to_analyze[0], time_serie_to_analyze[1]), "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+    figure_analyze_data_local_minima = figure_time_series_data_as_layers(__own_logger, "Datenanalyse des Videos 2_0: Zeitpunkte der Lokalen Minima", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
     # Append the figure to the plot
     plot.appendFigure(figure_analyze_data_local_minima.getFigure())
 
@@ -365,18 +390,18 @@ if __name__ == "__main__":
                     __own_logger.info("Data Analysis: DataFrame correlation: %s", data_video_to_analyze.corr())     # TODO: Heatmap
                     # Skewness
                     __own_logger.info("Data Analysis: DataFrame skewness: %s", data_video_to_analyze.skew(axis='index'))
-                    # Time Series Stationarity
-                    # Copy the data for stationary data
-                    df_stationary_data = data_video_to_analyze.copy()
-                    # Test the columns for stationarity
-                    stationarity_results = stationarity_test(df_stationary_data)
-                    # Are the columns strict stationary?
-                    for column in stationarity_results:
-                        __own_logger.info("Data Analysis: Stationarity: Column %s is stationary: %s", column, stationarity_results[column])
-                        for value in stationarity_results[column].values():
-                            if value == False:
-                                #sys.exit('The data {} is not strict stationary! Fix it!'.format(column))
-                                __own_logger.info("Data Analysis: Column %s is not stationary.", column)
+                    # # Time Series Stationarity
+                    # # Copy the data for stationary data
+                    # df_stationary_data = data_video_to_analyze.copy()
+                    # # Test the columns for stationarity
+                    # stationarity_results = stationarity_test(df_stationary_data)
+                    # # Are the columns strict stationary?
+                    # for column in stationarity_results:
+                    #     __own_logger.info("Data Analysis: Stationarity: Column %s is stationary: %s", column, stationarity_results[column])
+                    #     for value in stationarity_results[column].values():
+                    #         if value == False:
+                    #             #sys.exit('The data {} is not strict stationary! Fix it!'.format(column))
+                    #             __own_logger.info("Data Analysis: Column %s is not stationary.", column)
 
                     # Get the frequency of the data: Calculate Spectrum (squared magnitude spectrum via fft)
                     # At first get the sampling frequency of the video 2 (but index of rows starting with 0, so it is index 2-1): The frame rate (Calc float numbers from fractions)
@@ -456,12 +481,12 @@ if __name__ == "__main__":
                         "value": max_ampl_arr,
                     }
                     # Create a bar chart
-                    figure_analyze_frequencies = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos {} (mangelnde Amplitude: {}): Maximale Amplituden der Spektren".format(train_data_file_name.replace('features_', '').replace('.csv', ''), performance_labels_amplitude_lack[int(train_data_file_name.replace('features_', '').replace('.csv', '').split('_')[1])]), "Betrag im Quadrat des 2D-Fourier-Spektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05, x_label="Frequenz [Hz]")
+                    figure_analyze_frequencies = figure_vbar_as_layers(__own_logger, "Datenanalyse des Videos {} (mangelnde Amplitude: {}): Maximale Amplituden der Spektren".format(train_data_file_name.replace('features_', '').replace('.csv', ''), performance_labels_amplitude_lack[int(train_data_file_name.replace('features_', '').replace('.csv', '').split('_')[1])]), "Betrag im Quadrat des 2D-Fourier-Amplitudenspektrums", dict_visualization_data.get('layer'), dict_visualization_data.get('label')*10, dict_visualization_data.get('value'), set_x_range=False, width=0.05, x_label="Frequenz [Hz]")
                     # Add line to visualize the max freqs seperated by foots and wrists
                     figure_analyze_frequencies.add_vertical_line(max_freq_foot, max_ampl_foot*1.05)
-                    figure_analyze_frequencies.add_annotation(max_freq_foot, max_ampl_foot *1.05, 'Max Ampl. Füße')
+                    figure_analyze_frequencies.add_annotation(max_freq_foot, max_ampl_foot *1.0, '    Max Ampl. Füße', text_align='left')
                     figure_analyze_frequencies.add_vertical_line(max_freq_wrist, max_ampl_wrist*1.05)
-                    figure_analyze_frequencies.add_annotation(max_freq_wrist, max_ampl_wrist *1.05, 'Max Ampl. Hände')
+                    figure_analyze_frequencies.add_annotation(max_freq_wrist, max_ampl_wrist *1.0, '    Max Ampl. Hände', text_align='left')
                     # Append the figure to the plot
                     plot.appendFigure(figure_analyze_frequencies.getFigure())
         
