@@ -168,7 +168,7 @@ class PlotMultipleLayers(PlotBokeh):
         self.__own_figure.circle(x=x_data, y=y_data, legend_label=legend_label, color=next(self.__color_iter))
         self.__own_logger.info("Added  circle layer %s", legend_label)
 
-    def addVBarLayer(self, x_data, y_data, color_sequencing=True, legend_label=None, width=0.8):
+    def addVBarLayer(self, x_data, y_data, color_sequencing=True, legend_label=None, width=0.8, fill_alpha=0.6, legend_location='top_right'):
         """
         Add a layer to the figure (vertical bar representation)
         ----------
@@ -183,6 +183,10 @@ class PlotMultipleLayers(PlotBokeh):
                 The legend label of the layer
             width : numbers.Real
                 The width of the bar
+            fill_alpha : numbers.Real
+                Opacity of the filling colour
+            legend_location : str
+                The location of the legend
         ----------
         Returns:
             no returns
@@ -201,9 +205,11 @@ class PlotMultipleLayers(PlotBokeh):
             # add a plot to the figure
             if legend_label is None:
                 self.__own_figure.vbar(x = x_data, top = y_data, width=width)
+                self.__own_figure.legend.location=legend_location
             else :
                 # When legend_labels are defined, then we assume that we need multiple layers  with different colors and the bars should be visible with transparent colors to get overlaps visible
-                self.__own_figure.vbar(x = x_data, top = y_data, width=width, legend_label=legend_label, color=next(self.__color_iter), fill_alpha=0.6)
+                self.__own_figure.vbar(x = x_data, top = y_data, width=width, legend_label=legend_label, color=next(self.__color_iter), fill_alpha=fill_alpha)
+                self.__own_figure.legend.location=legend_location
 
         self.__own_logger.info("Added vbar layer")
 
@@ -495,7 +501,7 @@ def figure_vbar(logger, figure_title, y_label, x_data, y_data, set_x_range=True,
 
 #########################################################
 
-def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data, set_x_range=True, x_label=None, width=0.8):
+def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data, set_x_range=True, x_label=None, width=0.8, single_x_range=False, fill_alpha=0.6, legend_location='top_right', x_offset=0):
     """
     Function to create a vbar chart figure
     ----------
@@ -518,6 +524,14 @@ def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data,
             set the x_data as range of the x-axis (for categorical data)
         width : numbers.Real
                 The width of the bar
+        single_x_range : boolean
+                Use single x_range for multiple layers
+        fill_alpha : numbers.Real
+                Opacity of the filling colour
+        legend_location : str
+            The location of the legend
+        x_offset : numbers.Real
+            The x-offset for visualisation of layers next to each other and no overlay
         
     ----------
     Returns:
@@ -534,7 +548,11 @@ def figure_vbar_as_layers(logger, figure_title, y_label, layers, x_data, y_data,
             figure = PlotMultipleLayers(figure_title, x_label, y_label, x_range=None)
         for (index, layer) in enumerate(layers):
             logger.info("Add Layer for %s", layer)
-            figure.addVBarLayer(x_data[index], y_data[index], color_sequencing=False, legend_label=layer, width=width)
+            if single_x_range:
+                offsets = map(lambda x: x_offset*index-x_offset, x_data)
+                figure.addVBarLayer(list(zip(x_data, offsets)), y_data[index], color_sequencing=False, legend_label=layer, width=width, fill_alpha=fill_alpha, legend_location=legend_location)
+            else:
+                figure.addVBarLayer(x_data[index], y_data[index], color_sequencing=False, legend_label=layer, width=width, fill_alpha=fill_alpha, legend_location=legend_location)
         return figure
     except TypeError as error:
         logger.error("########## Error when trying to create figure ##########", exc_info=error)
