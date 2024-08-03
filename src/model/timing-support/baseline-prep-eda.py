@@ -355,7 +355,9 @@ if __name__ == "__main__":
     plot.appendFigure(figure_analyze_data_local_minima.getFigure())
 
     # Now, analyze all videos, but with less visualization
-
+    video_num_arr = []
+    frequencies_by_hand_arr = []
+    frequencies_by_foot_arr = []
     # Iterate over all videos
     for video_idx in metadata.index:
         # Get the performace label (amplitude_lack)
@@ -480,6 +482,10 @@ if __name__ == "__main__":
                     max_ampl_wrist= max_ampl_wrist_arr[idxmax_wrist]
                     __own_logger.info("Data Analysis: Max spectrum amplitude for foots %s at frequency of the time series: %s Hz", max_ampl_foot, max_freq_foot)
                     __own_logger.info("Data Analysis: Max spectrum amplitude for wrists %s at frequency of the time series: %s Hz", max_ampl_wrist, max_freq_wrist)
+                    # Save in array
+                    video_num_arr.append(train_data_file_name.replace('features_', '').replace('.csv', ''))
+                    frequencies_by_hand_arr.append(max_freq_wrist)
+                    frequencies_by_foot_arr.append(max_freq_foot)
                     # Create dict for visualization data
                     dict_visualization_data = {
                         "layer": data_video_to_analyze.drop('missing_data', axis=1).columns,
@@ -495,6 +501,26 @@ if __name__ == "__main__":
                     figure_analyze_frequencies.add_annotation(max_freq_wrist, max_ampl_wrist *1.0, '    Max Ampl. Hände', text_align='left')
                     # Append the figure to the plot
                     plot.appendFigure(figure_analyze_frequencies.getFigure())
+
+    # Create a dataframe with the frequency results
+    circles_frequencies_detected = pd.DataFrame({'circles_num':video_num_arr, 'freq_by_hand': frequencies_by_hand_arr, 'freq_by_foot': frequencies_by_foot_arr})
+    log_overview_data_frame(__own_logger, circles_frequencies_detected)
+    # Descriptive Statistics
+    __own_logger.info("Descriptive Statistics: DataFrame about the detected frequencies of the circles describe: %s", circles_frequencies_detected.drop('circles_num', axis=1).describe())
+    # As boxplot
+    boxprops=dict(linestyle='-', linewidth=0.5, color='#008080', facecolor = "#008080")
+    flierprops=dict(markerfacecolor = '#7f7f7f', markeredgecolor = '#7f7f7f')
+    medianprops=dict(linestyle='-', linewidth=2, color='#ff8000')
+    whiskerprops=dict(linestyle='-', linewidth=2, color='#800080')
+    capprops=dict(linestyle='-', linewidth=2, color='#800080')
+    bplt = circles_frequencies_detected.drop('circles_num', axis=1).plot.box(patch_artist = True, figsize=(10, 5), showmeans=True, grid=True, boxprops=boxprops, flierprops=flierprops, medianprops=medianprops, whiskerprops=whiskerprops, capprops=capprops, return_type='dict')
+    [item.set_markerfacecolor('#ff8000') for item in bplt['means']]
+    [item.set_markeredgecolor('#ff8000') for item in bplt['means']]
+    plt.ylabel("Kreisflankenfrequenz [Hz]")
+    plt.show()
+
+    figure_results = figure_vbar_as_layers(__own_logger, "Detektierte Kreisflankenfrequenzen", "Kreisflankenfrequenz [Hz]", circles_frequencies_detected.drop('circles_num', axis=1).columns.values, ["{}".format(str(i)) for i in video_num_arr], [frequencies_by_hand_arr, frequencies_by_foot_arr], set_x_range=True, width=0.3, x_label="Video Nr.", single_x_range=True, x_offset=0.3)
+    plot.appendFigure(figure_results.getFigure())
         
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
