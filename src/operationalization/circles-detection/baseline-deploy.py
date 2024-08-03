@@ -62,9 +62,10 @@ if __name__ == "__main__":
     clf = load(file_path)
 
     # Join the filepath of the raw data file
-    file_input_path = os.path.join(deployment_video_path, "deployment_fromSide.mov")
+    #file_input_path = os.path.join(deployment_video_path, "deployment_fromSide.mov")
     #file_input_path = os.path.join(deployment_video_path, "deployment_fromTop.mp4")
     #file_input_path = os.path.join(deployment_video_path, "deployment_fromSide_otherDirection.MOV")
+    file_input_path = os.path.join(deployment_video_path, "2.mp4")
     __own_logger.info("Input video: %s", file_input_path)
 
     # Initialize MediaPipe Pose and Drawing utilities
@@ -130,18 +131,22 @@ if __name__ == "__main__":
 
             # Bigger size of the image for better visualization
             frame = cv2.resize(frame, (1920,1080), interpolation=cv2.INTER_CUBIC)
+            #frame = cv2.resize(frame, (700,400), interpolation=cv2.INTER_CUBIC)     # For documentation purposes
 
             # Signaling the detection of circles
             if y_pred_single[0]:
                 # Green dot when circle is detected
                 frame = cv2.circle(frame, (1820,80), radius=50, color=(0, 255, 0), thickness=-1)
+                #frame = cv2.circle(frame, (630,60), radius=50, color=(0, 255, 0), thickness=-1) # For documentation purposes
             else:
                 # red if not
                 frame = cv2.circle(frame, (1820,80), radius=50, color=(0, 0, 255), thickness=-1)
+                #frame = cv2.circle(frame, (630,60), radius=50, color=(0, 0, 255), thickness=-1) # For documentation purposes
         else:
             # If no landmarks detected
             # Bigger size of the image for better visualization
             frame = cv2.resize(frame, (1920,1080), interpolation=cv2.INTER_CUBIC)
+            #frame = cv2.resize(frame, (700,400), interpolation=cv2.INTER_CUBIC) # For documentation purposes
             # Dont change the Signaling for the detection of circles, so if no landmarks are detected, no change of the last status will be "predicted"
             
 
@@ -151,16 +156,18 @@ if __name__ == "__main__":
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         # Show it in fullscreen
         cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        #cv2.resizeWindow(window_name, 700, 400) # For documentation purposes
 
         # Add some text
-        cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
+        #cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
         cv2.putText(frame,"Circle running:",(1500,80),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+        #cv2.putText(frame,"Circle running:",(300,60),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)    # For documentation purposes
 
         # Get the frame rate of the source video
         fps =  cap.get(cv2.CAP_PROP_FPS)
-        cv2.putText(frame,f'Framerate (source): {fps:.1f} FPS',(0,1000),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)
+        #cv2.putText(frame,f'Framerate (source): {fps:.1f} FPS',(0,1000),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)
         # Put calculated frame rate for the generated video as text in image
-        cv2.putText(frame,f'Framerate (generated): {framerate:.1f} FPS',(0,1040),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)   
+        #cv2.putText(frame,f'Framerate (generated): {framerate:.1f} FPS',(0,1040),cv2.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),1)   
 
         # Display the frame
         cv2.imshow(window_name, frame)
