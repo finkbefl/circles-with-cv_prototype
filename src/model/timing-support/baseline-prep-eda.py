@@ -189,9 +189,15 @@ if __name__ == "__main__":
     # Descriptive Statistics
     __own_logger.info("Descriptive Statistics: DataFrame describe: %s", data_video_to_analyze.describe())
     # As boxplot
-    ax = data_video_to_analyze.plot.box(figsize=(10, 5), showmeans=True, grid=True)
-    #ax.set_title('Datenanalyse des Videos 2_0: Boxplot')
-    ax.set_ylabel("Position normiert auf die Breite bzw. Höhe des Bildes")
+    boxprops=dict(linestyle='-', linewidth=0.5, color='#008080', facecolor = "#008080")
+    flierprops=dict(markerfacecolor = '#7f7f7f', markeredgecolor = '#7f7f7f')
+    medianprops=dict(linestyle='-', linewidth=2, color='#ff8000')
+    whiskerprops=dict(linestyle='-', linewidth=2, color='#800080')
+    capprops=dict(linestyle='-', linewidth=2, color='#800080')
+    bplt = data_video_to_analyze.plot.box(patch_artist = True, figsize=(10, 5), showmeans=True, grid=True, boxprops=boxprops, flierprops=flierprops, medianprops=medianprops, whiskerprops=whiskerprops, capprops=capprops, return_type='dict')
+    [item.set_markerfacecolor('#ff8000') for item in bplt['means']]
+    [item.set_markeredgecolor('#ff8000') for item in bplt['means']]
+    plt.ylabel("Position normiert auf die Breite bzw. Höhe des Bildes")
     plt.show()
 
     # Data Analysis

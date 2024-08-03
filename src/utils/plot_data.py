@@ -18,6 +18,20 @@ from utils.own_logging import OwnLogging
 from utils.check_parameter import checkParameter, checkParameterString
 from utils.own_exceptions import IllegalArgumentError
 
+# Create own color palette: based on colors from latex (find out with gimp color-picker) to have a common color base for the documentation
+ownColorPalette = [
+    '#008080', # category10: teal
+    '#ff8000', # category10: orange
+    '#800080', # category10: violet
+    '#2ca02c', # category10: green
+    '#d62728', # category10: red
+    '#8c564b', # category10: brown
+    '#1f77b4', # category10: blue
+    '#7f7f7f', # category10: gray
+    '#bcbd22', # category10: lime
+    '#17becf'  # category10: cyan
+    ] 
+
 class PlotBokeh():
     """
     A basic class for easy plotting with bokeh and output the result in a static HTML file if required
@@ -103,7 +117,7 @@ class PlotMultipleLayers(PlotBokeh):
         # Call the Base Class Constructor
         PlotBokeh.__init__(self, file_name, file_title)
         # For color cycling (different colors for the different layers)
-        self.__color_iter = Category10_10.__iter__()
+        self.__color_iter = ownColorPalette.__iter__()
         # create a figure, but first check the parameter
         checkParameterString(figure_title)
         #checkParameterString(x_label)
@@ -197,14 +211,14 @@ class PlotMultipleLayers(PlotBokeh):
         if color_sequencing:
             # add a plot to the figure, assign every bar in another color with the known color sequence
             if legend_label is None:
-                self.__own_figure.vbar(x = x_data, top = y_data, width=width, color=Category10_10[0:len(x_data)])
+                self.__own_figure.vbar(x = x_data, top = y_data, width=width, color=ownColorPalette[0:len(x_data)])
             # else :
             #     # When legend_labels are defined, then we assume that we need multiple layers  with different colors and the bars should be visible with transparent colors to get overlaps visible
             #     # As this option allows color-sequencing, multiple layers makes no sense?
         else:
             # add a plot to the figure
             if legend_label is None:
-                self.__own_figure.vbar(x = x_data, top = y_data, width=width)
+                self.__own_figure.vbar(x = x_data, top = y_data, width=width, color=next(self.__color_iter))
                 self.__own_figure.legend.location=legend_location
             else :
                 # When legend_labels are defined, then we assume that we need multiple layers  with different colors and the bars should be visible with transparent colors to get overlaps visible
@@ -233,7 +247,7 @@ class PlotMultipleLayers(PlotBokeh):
         #checkParameter(y_data, Real)
         # add a plot to the figure
         if legend_label is None:
-            self.__own_figure.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], line_color="white")
+            self.__own_figure.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], line_color="white", color=next(self.__color_iter))
         else :
             # When legend_labels are defined, then we assume that we need multiple layers  with different colors and the bars should be visible with transparent colors to get overlaps visible
             self.__own_figure.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], line_color="white", legend_label=legend_label, color=next(self.__color_iter), fill_alpha=0.6)
