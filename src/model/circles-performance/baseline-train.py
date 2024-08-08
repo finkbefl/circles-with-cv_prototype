@@ -184,12 +184,12 @@ if __name__ == "__main__":
         "x_data": data_training_scaled_df.index + 1
     }
     # Create a Line-Circle Chart
-    figure_training_normalized_data = figure_time_series_data_as_layers(__own_logger, "Trainingsdaten normalisiert auf Mittelwert 0 und Einheitsvarianz", "Position (normalisiert)", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    figure_training_normalized_data = figure_time_series_data_as_layers(__own_logger, "{}-Trainingsdaten normalisiert auf Mittelwert 0 und Einheitsvarianz".format(column_to_analyze), "{} (normalisiert)".format(column_to_analyze), dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
     # Append the figure to the plot
     plot.appendFigure(figure_training_normalized_data.getFigure())
     # Visualize the Probability Density Function as histogram
     hist, bin_edges = np.histogram(data_training_scaled_df[column_to_analyze], density=True, bins=int((data_training_scaled_df[column_to_analyze].max()-data_training_scaled_df[column_to_analyze].min())*10))
-    figure_analyze_data_distribution = figure_hist(__own_logger, "Wahrscheinlichkeitsdichte der Trainingsdaten normalisiert auf Mittelwert 0 und Einheitsvarianz \nals Histogramm ", "Position (normalisiert)", "Wahrscheinlichkeit [%]", bin_edges, hist)
+    figure_analyze_data_distribution = figure_hist(__own_logger, "Wahrscheinlichkeitsdichte der {}-Trainingsdaten normalisiert auf Mittelwert 0 \nund Einheitsvarianz als Histogramm".format(column_to_analyze), "{} (normalisiert)".format(column_to_analyze), "Wahrscheinlichkeit [%]", bin_edges, hist)
     # Calc destcriptive statistics
     column_statistics = data_training_scaled_df[column_to_analyze].describe()
     column_std = column_statistics.loc['std']
