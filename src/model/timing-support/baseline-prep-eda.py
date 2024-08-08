@@ -146,6 +146,8 @@ if __name__ == "__main__":
 
     # Get the data for the specific video which should be analyzed in detail
     data_video_to_analyze = load_data(data_modeling_path, 'features_2_0.csv')
+    data_video_to_analyze = load_data(data_modeling_path, 'features_12_4.csv')
+    data_video_to_analyze = load_data(data_modeling_path, 'features_12_4_cut.csv')
 
     # Convert the timestamps (in ms) into DateTime (raise an exception when parsing is invalid) and set it as index
     data_video_to_analyze = data_video_to_analyze.set_index(convert_series_into_date(data_video_to_analyze.timestamp, unit='ms'))
