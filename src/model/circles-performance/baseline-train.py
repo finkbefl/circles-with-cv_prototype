@@ -171,6 +171,38 @@ if __name__ == "__main__":
     gamma = 1 / (n_features * variance)
     __own_logger.info("gamma value for 'scale' calculated: n_features = %s; variance = %s; gamma = %s", n_features, variance, gamma)
     __own_logger.info("gamma value for 'scale' retrieved from trained model: gamma = %s", clf_best._gamma)
+
+    # Visualize the normalized training data via standardscaler to see which data is piped to the model
+    # Only on one column
+    column_to_analyze = 'right_foot_x_pos'
+    data_training_scaled_df = pd.DataFrame(data=data_training_scaled, columns=data_training.drop(['amplitude_lack', 'missing_data'], axis=1).columns.values)
+    # Create dict for visualization data
+    dict_visualization_data = {
+        "label": [column_to_analyze],
+        "value": data_training_scaled.T,
+        # As x_data generate a consecutive number: a frame number for the whole merged time series, so the index + 1 can be used
+        "x_data": data_training_scaled_df.index + 1
+    }
+    # Create a Line-Circle Chart
+    figure_training_normalized_data = figure_time_series_data_as_layers(__own_logger, "Trainingsdaten normalisiert auf Mittelwert 0 und Einheitsvarianz", "Position (normalisiert)", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    # Append the figure to the plot
+    plot.appendFigure(figure_training_normalized_data.getFigure())
+    # Visualize the Probability Density Function as histogram
+    hist, bin_edges = np.histogram(data_training_scaled_df[column_to_analyze], density=True, bins=int((data_training_scaled_df[column_to_analyze].max()-data_training_scaled_df[column_to_analyze].min())*10))
+    figure_analyze_data_distribution = figure_hist(__own_logger, "Wahrscheinlichkeitsdichte der Trainingsdaten normalisiert auf Mittelwert 0 und Einheitsvarianz \nals Histogramm ", "Position (normalisiert)", "Wahrscheinlichkeit [%]", bin_edges, hist)
+    # Calc destcriptive statistics
+    column_statistics = data_training_scaled_df[column_to_analyze].describe()
+    column_std = column_statistics.loc['std']
+    column_mean = column_statistics.loc['mean']
+    # Visualize mean and std
+    figure_analyze_data_distribution.add_vertical_line(column_mean, hist.max()*0.9)
+    figure_analyze_data_distribution.add_vertical_line(column_mean - column_std, hist.max()*0.9)
+    figure_analyze_data_distribution.add_vertical_line(column_mean + column_std, hist.max()*0.9)
+    figure_analyze_data_distribution.add_annotation(column_mean, hist.max()*0.95, "\u03BC = {0:.2f}".format(column_mean))
+    figure_analyze_data_distribution.add_annotation(column_mean - column_std, hist.max()*0.95, "-\u03C3 = {0:.2f}".format(-column_std))
+    figure_analyze_data_distribution.add_annotation(column_mean + column_std, hist.max()*0.95, "\u03C3 = {0:.2f}".format(column_std))
+
+    plot.appendFigure(figure_analyze_data_distribution.getFigure())
         
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
