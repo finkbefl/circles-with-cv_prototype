@@ -139,7 +139,7 @@ if __name__ == "__main__":
     #Testing out the CV scores is not enough to ensure the accuracy of the model. One could still run into the problem of high bias (underfitting) or high variances (overfitting). To see if this is the case, one can plot the learning curve:
     # Train size as fraction of the maximum size of the training set
     train_sizes_as_fraction = np.linspace(0.1, 1.0, 10)
-    train_sizes, train_scores, valid_scores = learning_curve(pipeline,data_training.drop(['circles_running', 'missing_data'], axis=1).to_numpy(),data_training.circles_running.to_numpy(),train_sizes=train_sizes_as_fraction,cv=5)
+    train_sizes, train_scores, valid_scores = learning_curve(pipeline,data_training.drop(['circles_running', 'missing_data'], axis=1).to_numpy(),data_training.circles_running.to_numpy(),train_sizes=train_sizes_as_fraction,cv=5, scoring='accuracy')
     mean_train_scores=np.mean(train_scores,axis=1)
     mean_valid_scores=np.mean(valid_scores,axis=1)
     __own_logger.info("Mean train scores: %s", mean_train_scores)
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         "x_data": train_sizes_as_fraction
     }
     # Create a Line-Circle Chart
-    figure_learning_courve = figure_time_series_data_as_layers(__own_logger, "Lernkurve", "Score", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Training Size", legend_location='bottom_right')
+    figure_learning_courve = figure_time_series_data_as_layers(__own_logger, "Lernkurve", "Score (Accuracy)", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Training Size", legend_location='bottom_right')
     # Append the figure to the plot
     plot.appendFigure(figure_learning_courve.getFigure())
 
