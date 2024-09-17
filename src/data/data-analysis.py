@@ -92,14 +92,14 @@ if __name__ == "__main__":
         metadata_video = metadata_streams[metadata_streams.codec_type == 'video']
         # Save some important metadata in corresponding arrays
         codec_name.append(metadata_video.codec_name.values[0])
-        width.append(metadata_video.width.values[0])
-        height.append(metadata_video.height.values[0])
-        coded_width.append(metadata_video.coded_width.values[0])
-        coded_height.append(metadata_video.coded_height.values[0])
+        width.append(int(metadata_video.width.values[0]))
+        height.append(int(metadata_video.height.values[0]))
+        coded_width.append(int(metadata_video.coded_width.values[0]))
+        coded_height.append(int(metadata_video.coded_height.values[0]))
         pix_fmt.append(metadata_video.pix_fmt.values[0])
-        r_frame_rate.append(metadata_video.r_frame_rate.values[0])
-        avg_frame_rate.append(metadata_video.avg_frame_rate.values[0])
-        duration.append(metadata_video.duration.values[0])
+        r_frame_rate.append(round(float(Fraction(metadata_video.r_frame_rate.values[0])),2))
+        avg_frame_rate.append(round(float(Fraction(metadata_video.avg_frame_rate.values[0])),2))
+        duration.append(round(float(metadata_video.duration.values[0]),2))
         bit_rate.append(metadata_video.bit_rate.values[0])
         nb_frames.append(metadata_video.nb_frames.values[0])
 
