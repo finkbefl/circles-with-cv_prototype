@@ -192,19 +192,27 @@ if __name__ == "__main__":
         # Go to the next frame
         frame_number += 1
 
-    # Add the collected features to the DataFrame
-    features['right_foot_x_pos_300x169'] = right_foot_x
-    #features['right_foot_y_pos'] = right_foot_y
-    #features['left_foot_x_pos'] = left_foot_x
-    #features['left_foot_y_pos'] = left_foot_y
-    features['nose_x_pos_300x169'] = nose_x
-    #features['nose_y_pos'] = nose_y
     if mode_compare_with_orig_res:
+        # Add the collected features to the DataFrame
+        features['right_foot_x_pos_300x169'] = right_foot_x
+        #features['right_foot_y_pos'] = right_foot_y
+        #features['left_foot_x_pos'] = left_foot_x
+        #features['left_foot_y_pos'] = left_foot_y
+        features['nose_x_pos_300x169'] = nose_x
+        #features['nose_y_pos'] = nose_y
         features['right_foot_x_pos_1920x1080'] = right_foot_x_orig
         #features['right_foot_y_po_origs'] = right_foot_y_orig
         #features['left_foot_x_pos_orig'] = left_foot_x_orig
         #features['left_foot_y_pos_orig'] = left_foot_y_orig
         features['nose_x_pos_1920x1080'] = nose_x_orig
+    else:
+        # Add the collected features to the DataFrame
+        features['right_foot_x_pos'] = right_foot_x
+        #features['right_foot_y_pos'] = right_foot_y
+        #features['left_foot_x_pos'] = left_foot_x
+        #features['left_foot_y_pos'] = left_foot_y
+        features['nose_x_pos'] = nose_x
+        #features['nose_y_pos'] = nose_y
     # Add the timestamps to to the features DataFrame
     features['timestamp'] = timestamp
 
@@ -218,7 +226,10 @@ if __name__ == "__main__":
         "x_data": convert_series_into_date(features['timestamp'], unit='ms')
     }
     # Create a Line-Circle Chart
-    figure_landmarks_time_series = figure_time_series_data_as_layers(__own_logger, "Positionen ausgewählter Körpermerkmale", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+    if mode_compare_with_orig_res:
+        figure_landmarks_time_series = figure_time_series_data_as_layers(__own_logger, "Vergleich der Posenschätzung mit unterschiedlichen Auflösungen", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
+    else:
+        figure_landmarks_time_series = figure_time_series_data_as_layers(__own_logger, "Positionen ausgewählter Körpermerkmale", "Position normiert auf die Breite bzw. Höhe des Bildes", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Laufzeit des Videos", x_axis_type='datetime')
 
     # Create the plot with the created figures
     file_name = "pose-estimation.html"
