@@ -22,7 +22,7 @@ from utils.own_logging import OwnLogging, log_overview_data_frame
 # To handle csv files
 from utils.csv_operations import load_data,  save_data
 # To plot data with bokeh
-from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar, figure_hist, figure_hist_as_layers, figure_time_series_data_as_layers
+from utils.plot_data import PlotMultipleLayers, PlotMultipleFigures, figure_vbar, figure_hist, figure_hist_as_layers, figure_vbar_as_layers, figure_time_series_data_as_layers
 
 #########################################################
 
@@ -187,28 +187,55 @@ if __name__ == "__main__":
     # Get csv file, which was created during data collection and adapted during data analysis as DataFrame
     metadata = load_data(data_raw_path, 'training_videos_with_metadata.csv')
     # Iterate over all single evaluation data (get video index via tag in metadata column 'usage' with 'test')
+    video_name_num_arr = []
+    accuracy_arr = []
+    precision_arr = []
+    recall_arr = []
+    f1_arr = []
     for video_idx in metadata.index[metadata.usage == 'test']:
         # The filename contains also a number, but starting from 1
         video_name_num = video_idx + 1
+        video_name_num_arr.append(video_name_num)
         eval_data_file_name = "data_test_{}.csv".format(video_name_num)
         __own_logger.info("Single evaluation data detected: %s", eval_data_file_name)
         # Get the data related to the specific video
         data_specific_video = load_data(data_modeling_path, eval_data_file_name)
         # Calc the metrics
         accuracy = metrics.accuracy_score(data_specific_video.circles_running, data_specific_video.prediction)
+        accuracy_arr.append(accuracy)
         __own_logger.info("Testdaten Video %d: Accuracy: %s",video_name_num, accuracy)
         precision = metrics.precision_score(data_specific_video.circles_running, data_specific_video.prediction)
+        precision_arr.append(precision)
         __own_logger.info("Testdaten Video %d: Precision: %s",video_name_num, precision)
         recall = metrics.recall_score(data_specific_video.circles_running, data_specific_video.prediction)
+        recall_arr.append(recall)
         __own_logger.info("Testdaten Video %d: Recall: %s",video_name_num, recall)
         f1 = metrics.f1_score(data_specific_video.circles_running, data_specific_video.prediction)
+        f1_arr.append(f1)
         __own_logger.info("Testdaten Video %d: F1-Score: %s",video_name_num, f1)
         # Create a bar chart
         figure_evaluation_single = figure_vbar(__own_logger, "Testdaten Video {}: Evaluierung".format(video_name_num), "Wert der Metrik", dict_visualization_data.get('label'), [accuracy, precision, recall, f1], set_x_range=True, color_sequencing=False)
         # Append the figure to the plot
         plot.appendFigure(figure_evaluation_single.getFigure())
 
-
+    # Show one chart with combined evaluations for documentation reasons
+    visualize_1_arr = []
+    visualize_1_arr.append(accuracy)
+    visualize_1_arr.append(precision)
+    visualize_1_arr.append(recall)
+    visualize_1_arr.append(f1)
+    visualize_2_arr = []
+    visualize_2_arr.append(accuracy_arr[0])
+    visualize_2_arr.append(precision_arr[0])
+    visualize_2_arr.append(recall_arr[0])
+    visualize_2_arr.append(f1_arr[0])
+    visualize_3_arr = []
+    visualize_3_arr.append(accuracy_arr[4])
+    visualize_3_arr.append(precision_arr[4])
+    visualize_3_arr.append(recall_arr[4])
+    visualize_3_arr.append(f1_arr[4])
+    figure_evaluation_combined = figure_vbar_as_layers(__own_logger, "Vergleich der Evaluierung", "Wert der Metrik", ['Gesamt', 'Video {}'.format(video_name_num_arr[0]), 'Video {}'.format(video_name_num_arr[4])], dict_visualization_data.get('label'), [visualize_1_arr, visualize_2_arr, visualize_3_arr], set_x_range=True, single_x_range=True, width=0.2, x_offset=0.2, fill_alpha=1, legend_location='center_right')
+    plot.appendFigure(figure_evaluation_combined.getFigure())
 
     # Show the plot in responsive layout, but only stretch the width
     plot.showPlotResponsive('stretch_width')
