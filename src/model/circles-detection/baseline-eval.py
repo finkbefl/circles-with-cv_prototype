@@ -234,7 +234,7 @@ if __name__ == "__main__":
     visualize_3_arr.append(precision_arr[4])
     visualize_3_arr.append(recall_arr[4])
     visualize_3_arr.append(f1_arr[4])
-    figure_evaluation_combined = figure_vbar_as_layers(__own_logger, "Vergleich der Evaluierung", "Wert der Metrik", ['Gesamt', 'Video {}'.format(video_name_num_arr[0]), 'Video {}'.format(video_name_num_arr[4])], dict_visualization_data.get('label'), [visualize_1_arr, visualize_2_arr, visualize_3_arr], set_x_range=True, single_x_range=True, width=0.2, x_offset=0.2, fill_alpha=1, legend_location='center_left')
+    figure_evaluation_combined = figure_vbar_as_layers(__own_logger, "Vergleich der Evaluierung", "Wert der Metrik", ['Gesamt', 'Video {}'.format(video_name_num_arr[0]), 'Video {}'.format(video_name_num_arr[4])], dict_visualization_data.get('label'), [visualize_1_arr, visualize_2_arr, visualize_3_arr], set_x_range=True, single_x_range=True, width=0.2, x_offset=0.2, fill_alpha=1, legend_location='center_right')
     plot.appendFigure(figure_evaluation_combined.getFigure())
 
     # Show the plot in responsive layout, but only stretch the width
