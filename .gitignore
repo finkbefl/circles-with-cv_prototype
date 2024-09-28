@@ -4,6 +4,7 @@ logs/*
 output/*
 data/backup/*
 
+**.JPG
 **.mp4
 **.MOV
 **.mov
