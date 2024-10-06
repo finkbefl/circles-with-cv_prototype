@@ -136,11 +136,11 @@ if __name__ == "__main__":
             # Signaling the detection of circles
             if y_pred_single[0]:
                 # Green dot when circle is detected
-                frame = cv2.circle(frame, (1820,80), radius=50, color=(0, 255, 0), thickness=-1)
+                frame = cv2.circle(frame, (1740,160), radius=120, color=(0, 255, 0), thickness=-1)
                 #frame = cv2.circle(frame, (630,60), radius=50, color=(0, 255, 0), thickness=-1) # For documentation purposes
             else:
                 # red if not
-                frame = cv2.circle(frame, (1820,80), radius=50, color=(0, 0, 255), thickness=-1)
+                frame = cv2.circle(frame, (1740,160), radius=120, color=(0, 0, 255), thickness=-1)
                 #frame = cv2.circle(frame, (630,60), radius=50, color=(0, 0, 255), thickness=-1) # For documentation purposes
         else:
             # If no landmarks detected
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
         # Add some text
         #cv2.putText(frame,"Press 'q' to quit",(0,40),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),1)
-        cv2.putText(frame,"Circle running:",(1500,80),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+        cv2.putText(frame,"Circle running:",(800,160),cv2.FONT_HERSHEY_COMPLEX,3,(0,0,0),5)
         #cv2.putText(frame,"Circle running:",(300,60),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)    # For documentation purposes
 
         # Get the frame rate of the source video
