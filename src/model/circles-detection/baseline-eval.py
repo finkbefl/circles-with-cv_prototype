@@ -153,30 +153,30 @@ if __name__ == "__main__":
     # Model Accuracy (Percentage of correct predictions): Number of correct predicitons / Number of all predictions
     # Good when classes are well balanced
     # Optimizations with regard to this metric means, that as many correct predictions as possible are made without placing a greater emphasis on a particular class
-    accuracy = metrics.accuracy_score(data_test.circles_running, data_test.prediction)
-    __own_logger.info("Accuracy: %s",accuracy)
+    accuracy_all = metrics.accuracy_score(data_test.circles_running, data_test.prediction)
+    __own_logger.info("Accuracy: %s",accuracy_all)
 
     # Model Precision (Ratio of true positives correctly predicted) : Number of predicted true positives / Number of all items matched positive by the algorithm (predicted true positives + predicted false pisitives)
     # Good if we want to be very sure that the positive prediction is correct
     # Optimizations with regard to this metric means, that emphasis is placed on ensuring that the positive predictions are actually positive
-    precision = metrics.precision_score(data_test.circles_running, data_test.prediction)
-    __own_logger.info("Precision: %s",precision)
+    precision_all = metrics.precision_score(data_test.circles_running, data_test.prediction)
+    __own_logger.info("Precision: %s",precision_all)
 
     # Model Recall (how well the model is able to identify positive outcomes): Number of predicted true positives / Number of actual real positives (predicted true positives + predicted false negatives)
     # Good if we want to identify as many positive results as possible
     # Optimizations with regard to this metric means, that emphasis is placed on identifying as many actual positives as possible
-    recall = metrics.recall_score(data_test.circles_running, data_test.prediction)
-    __own_logger.info("Recall: %s",recall)
+    recall_all = metrics.recall_score(data_test.circles_running, data_test.prediction)
+    __own_logger.info("Recall: %s",recall_all)
 
     # Model F1-Score
-    f1 = metrics.f1_score(data_test.circles_running, data_test.prediction)
-    __own_logger.info("F1-Score: %s",f1)
+    f1_all = metrics.f1_score(data_test.circles_running, data_test.prediction)
+    __own_logger.info("F1-Score: %s",f1_all)
 
     # Visualize the metrics
     # Create dict for visualization data
     dict_visualization_data = {
         "label": ["accuracy", "precision", "recall", "f1-score"],
-        "value": [accuracy, precision, recall, f1]
+        "value": [accuracy_all, precision_all, recall_all, f1_all]
     }
     # Create a bar chart
     figure_evaluation = figure_vbar(__own_logger, "Evaluierung", "Wert der Metrik", dict_visualization_data.get('label'), dict_visualization_data.get('value'), set_x_range=True, color_sequencing=False)
@@ -220,10 +220,10 @@ if __name__ == "__main__":
 
     # Show one chart with combined evaluations for documentation reasons
     visualize_1_arr = []
-    visualize_1_arr.append(accuracy)
-    visualize_1_arr.append(precision)
-    visualize_1_arr.append(recall)
-    visualize_1_arr.append(f1)
+    visualize_1_arr.append(accuracy_all)
+    visualize_1_arr.append(precision_all)
+    visualize_1_arr.append(recall_all)
+    visualize_1_arr.append(f1_all)
     visualize_2_arr = []
     visualize_2_arr.append(accuracy_arr[0])
     visualize_2_arr.append(precision_arr[0])
