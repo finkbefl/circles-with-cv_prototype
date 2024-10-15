@@ -1,1 +1,11 @@
 **.code-workspace
+**/__pycache__/*
+logs/*
+output/*
+data/backup/*
+
+**.JPG
+**.mp4
+**.MOV
+**.mov
+**.ods
