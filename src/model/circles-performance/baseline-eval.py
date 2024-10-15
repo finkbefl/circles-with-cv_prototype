@@ -124,7 +124,7 @@ if __name__ == "__main__":
         "x_data": data_test.index + 1
     }
     # Create a Line-Circle Chart
-    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Bewertung", "Kreisflanken detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
+    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Bewertung", "Mangelnde Amplitude", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame")
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
     # Visualize the prediction for the test data input without the info about missing data
@@ -136,7 +136,7 @@ if __name__ == "__main__":
         "x_data": data_test.index + 1
     }
     # Create a Line-Circle Chart
-    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Bewertung", "Kreisflanken detektiert", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame", legend_location='center_right')
+    figure_test_data = figure_time_series_data_as_layers(__own_logger, "Testdaten: Vorhersage der Bewertung", "Mangelnde Amplitude", dict_visualization_data.get('x_data'), dict_visualization_data.get('label'), dict_visualization_data.get('value'), "Frame", legend_location='center_right')
     # Append the figure to the plot
     plot.appendFigure(figure_test_data.getFigure())
 
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         # Save to CSV
         save_data(data_test_single, data_modeling_path, "{0}_{1}.csv".format('data_test',video_name_num))
         # Create a Line-Circle Chart
-        figure_test_data_single = figure_time_series_data_as_layers(__own_logger, "Testdaten Video {}: Vorhersage der Bewertung".format(video_name_num), "Kreisflanken detektiert", list(range(1, y_pred_single.size + 1)), dict_visualization_data.get('label'), [data_test_single.missing_data, data_test_single.amplitude_lack, y_pred_single], "Frame")
+        figure_test_data_single = figure_time_series_data_as_layers(__own_logger, "Testdaten Video {}: Vorhersage der Bewertung".format(video_name_num), "Mangelnde Amplitude", list(range(1, y_pred_single.size + 1)), dict_visualization_data.get('label'), [data_test_single.missing_data, data_test_single.amplitude_lack, y_pred_single], "Frame")
         # Append the figure to the plot
         plot.appendFigure(figure_test_data_single.getFigure())
 
